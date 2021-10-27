@@ -1,3 +1,5 @@
 These implement Clojure bindings for the godot engine.
 
 See https://github.com/tristanstraub/thecreeps-godotclj to see how to use it.
+
+This is not production quality.
