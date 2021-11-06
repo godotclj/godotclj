@@ -4,7 +4,7 @@ function paths {
 }
 
 JAVA_HOME=$(clj -M -e "(println (System/getProperty \"java.home\"))")
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$JAVA_HOME/lib:$JAVA_HOME/lib/server
+export LD_LIBRARY_PATH=$JAVA_HOME/lib:$JAVA_HOME/lib/server:${LD_LIBRARY_PATH}
 export CLASSPATH="$(paths)"
 
 exec godot $@

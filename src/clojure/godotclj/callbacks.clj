@@ -76,9 +76,9 @@
 (defn signal-callback
   [p_instance p_method_data p_user_data n-args args]
   (try
-    (let [vs          (godot/variants n-args args)
-          instance-id (proto/->clj (first vs))
-          signal-name (proto/->clj (second vs))]
+    (let [vs          (godot/->indexed-variant-array n-args args)
+          instance-id (first vs)
+          signal-name (second vs)]
       (send signal-agent signal-callback* instance-id signal-name)
       (await signal-agent))
     (catch Exception e
@@ -88,8 +88,8 @@
 (defn deferred-callback
   [p_instance p_method_data p_user_data n-args args]
   (try
-    (let [vs          (godot/variants n-args args)
-          callback-id (proto/->clj (first vs))]
+    (let [vs          (godot/->indexed-variant-array n-args args)
+          callback-id (first vs)]
       (send signal-agent deferred-callback* callback-id)
       (await signal-agent))
     (catch Exception e

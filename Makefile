@@ -31,7 +31,7 @@ CFLAGS += -ggdb
 
 export CFLAGS
 
-ALL=$(BIN)/libgodotclj.so $(BIN)/libgodotclj_gdnative.so $(BIN)/libwrapper.so $(BUILD)/wrapper.txt $(BUILD)/wrapper.json $(BUILD)/callback.txt $(BUILD)/callback.json
+ALL=src/clojure/godotclj/api/gdscript.clj $(BIN)/libgodotclj.so $(BIN)/libgodotclj_gdnative.so $(BIN)/libwrapper.so $(BUILD)/wrapper.txt $(BUILD)/wrapper.json $(BUILD)/callback.txt $(BUILD)/callback.json
 ifeq ($(RUNTIME),jvm)
 ALL += $(CLASSES)/godotclj/loader.class
 endif
@@ -50,7 +50,7 @@ all: $(ALL)
 
 .PHONY: clean
 clean:
-	rm -fr $(BIN) $(BUILD) $(CLASSES) target build classes src/c/wrapper.h src/c/wrapper.c .cpcache
+	rm -fr $(BIN) $(BUILD) $(CLASSES) target build classes src/c/wrapper.h src/c/wrapper.c .cpcache src/clojure/godotclj/api/gdscript.clj
 
 $(BUILD)/%.txt: src/c/%.c
 	mkdir -p $(BUILD)
@@ -80,6 +80,14 @@ $(CLASSES)/godotclj/context$$Directives.class: src/clojure/godotclj/gen_directiv
 			-J-Dclojure.compiler.direct-linking=true \
 		-J-Dclojure.spec.skip-macros=true \
 		-M -e "(with-bindings {#'*compile-path* (System/getenv \"CLASSES\")} (require 'godotclj.gen-directives))"
+
+src/clojure/godotclj/api/gdscript.clj: src/clojure/godotclj/api/gen_gdscript.clj
+	mkdir -p $(CLASSES)
+	PATH=$(JAVA_PATH) \
+	$(CLJ) -J-Dtech.v3.datatype.graal-native=true \
+			-J-Dclojure.compiler.direct-linking=true \
+		-J-Dclojure.spec.skip-macros=true \
+		-M -e "(require '[godotclj.api.gen-gdscript :refer [gen-api]]) (gen-api)"
 
 $(CLASSES)/godotclj/core/Bindings.class: $(CLASSES)/godotclj/context.class $(BUILD)/wrapper.txt $(BUILD)/wrapper.json $(BUILD)/callback.json $(BUILD)/callback.txt
 	mkdir -p $(CLASSES)

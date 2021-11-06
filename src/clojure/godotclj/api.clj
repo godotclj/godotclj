@@ -4,23 +4,19 @@
             [clojure.string :as str]
             [clojure.walk :as walk]
             [godotclj.bindings.godot :as godot]
+            [godotclj.api.gdscript :as gdscript]
             [godotclj.proto :as proto]
             [tech.v3.datatype :as dtype]
             [tech.v3.datatype.ffi :as dtype-ffi]
             [tech.v3.datatype.native-buffer :as native-buffer]
             [tech.v3.datatype.struct :as dtype-struct]
-            [camel-snake-kebab.core :as csk])
-  (:import tech.v3.datatype.ffi.Pointer))
+            [camel-snake-kebab.core :as csk]
 
-(defonce api-json
-  (delay (walk/keywordize-keys (json/read-str (slurp (or (io/resource "api.json")
-                                                         (io/file "godot-headers/api.json")))))))
+            [godotclj.api.gen-gdscript :as gen-gdscript :refer [ob-def method-name->keyword ob-methods]])
+  (:import tech.v3.datatype.ffi.Pointer
+           [godotclj.bindings.godot Variant]))
 
-(defn ob-def
-  [ob-name]
-  (->> @api-json
-       (filter (comp #{ob-name} :name))
-       first))
+(declare mapped-instance)
 
 (defn instance
   [ob-name]
@@ -28,23 +24,6 @@
     (if (:singleton ob-meta)
       (godot/godot_global_get_singleton_wrapper (dtype-ffi/string->c (:singleton_name ob-meta)))
       (godot/construct ob-name))))
-
-(defn hyphenate
-  [s]
-  (str/replace s "_" "-"))
-
-(defn method-name->keyword
-  [n]
-  (keyword (hyphenate n)))
-
-(defn ob-methods
-  [ob-name & {:keys [recursive] :or {recursive true}}]
-  (let [ob      (ob-def ob-name)
-        base    (:base_class ob)
-        methods (concat (when (and (seq base) recursive)
-                          (ob-methods base))
-                        (:methods ob))]
-    methods))
 
 (defn method-call
   [method f ob args]
@@ -64,21 +43,30 @@
                                           (dtype-ffi/->pointer variant))
     variant))
 
+(defn ->gdscript-instance
+  [ob-type m]
+  (case ob-type
+    ("String" "Rect2") (:godot/object m)
+    "Vector2"          m
+    "PoolStringArray"  m
+    "Array"            m
+    "enum.Error"       m
+    (gdscript/->instance ob-type m)))
+
 (defn ob-method**
-  [ob-type {:keys [return_type arguments] :as method}]
+  [ob-type {method-name :name :keys [return_type arguments] :as method}]
   (when-let [f (godot/godot_method_bind_get_method_wrapper
                 (dtype-ffi/string->c ob-type)
                 (dtype-ffi/string->c (:name method)))]
     (fn [ob & args]
       (try
-        ;;      (println :ob-method/args (interleave (map :type arguments) args))
         (let [variant (method-call method f ob args)
               object  (case return_type
                         "void"            nil
                         "String"          (some-> variant godot/variant->str)
                         "Array"           (some-> variant godot/variant->array)
                         "PoolStringArray" (some-> variant godot/variant->pool-string-array)
-                        "Rect2"           (some-> variant godot/variant->rect2)
+                        "Rect2"           (some-> variant godot/variant->rect2 godot/rect2->indexed)
                         "Vector2"         (some-> variant godot/variant->vector2)
                         "bool"            (some-> variant godot/variant->bool)
                         "float"           (some-> variant godot/variant->real)
@@ -92,17 +80,18 @@
         (catch Exception e
           (println e))))))
 
-(declare mapped-instance)
-
 (defn ob-method*
   [ob-type {:keys [return_type] :as method}]
   (let [f (ob-method** ob-type method)]
-    (fn [ob & args]
+    (fn [wrapper ob & args]
       (let [object (apply f ob args)]
-        (when (and object return_type)
-          (case return_type
-            ("bool" "int" "float") object
-            (mapped-instance return_type object)))))))
+        (assert return_type)
+        (case return_type
+          ("bool" "int" "float") object
+          "Vector2"              (godot/->Vector2 object)
+          "PoolStringArray"      (godot/pool-string-array->indexed object)
+          (when object
+            (mapped-instance return_type object wrapper)))))))
 
 (defn ob-method
   [ob-type method ob]
@@ -120,7 +109,7 @@
   (or (get m k)
       (when-let [method (get-in m [:godot/methods k])]
         (let [f (ob-method-memoized* (:godot/type m) method)]
-          (partial f (:godot/object m))))))
+          (partial f (:godot/wrapper m) (:godot/object m))))))
 
 (deftype InstanceGc [m]
   clojure.lang.ILookup
@@ -173,21 +162,20 @@
   ([ob-type]
    (mapped-instance ob-type (instance ob-type)))
   ([ob-type ob]
+   (mapped-instance ob-type ob #'->gdscript-instance))
+  ([ob-type ob wrapper]
+   {:pre [ob]}
    (let [method-defs (method-defs-memoized ob-type)
          ob-type     (if-let [get-class-def (:get-class method-defs)]
                        (godot/get-class ob)
                        ob-type)
          method-defs (method-defs-memoized ob-type)]
 
-     (instance-gc {:godot/object  ob
-                   :godot/type    ob-type
-                   :godot/methods method-defs}))))
-
-(defn pool-string-array->vec
-  [coll]
-  (vec
-   (for [i (range (godot/pool-string-array-size coll))]
-     (godot/pool-string-array-get coll i))))
+     (wrapper ob-type
+              (instance-gc {:godot/object  ob
+                            :godot/type    ob-type
+                            :godot/methods method-defs
+                            :godot/wrapper wrapper})))))
 
 (defrecord Vec2 [xs]
   proto/ToVariant
@@ -205,3 +193,36 @@
 (defn vec2?
   [v]
   (instance? Vec2 v))
+
+(defn ->object*
+  ([address-or-ob-type]
+   (if (string? address-or-ob-type)
+     (mapped-instance address-or-ob-type)
+     (mapped-instance "Object" (proto/->ptr address-or-ob-type))))
+  ([ob-type address]
+   (mapped-instance ob-type (proto/->ptr address))))
+
+(def ->object ->object*)
+#_
+(defmacro ->object
+  ([address-or-ob-type]
+   (if (string? address-or-ob-type)
+     `^{:tag ~(gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript address-or-ob-type)} (->object* ~address-or-ob-type)
+     `(->object* ~address-or-ob-type)))
+  ([ob-type address]
+   `^{:tag ~(gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript ob-type)} (->object* ~ob-type ~address)))
+
+;; (vary-meta `(mapped-instance ~ob-type (proto/->ptr ~address))
+;;               assoc (gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript ob-type) true)
+
+
+(extend-type Variant
+  proto/ToClojure
+  (->clj [this]
+    (let [variant (.variant this)]
+      (case (.variant-type this)
+        :godot-variant-type-real    (godot/variant->real variant)
+        :godot-variant-type-int     (godot/variant->int variant)
+        :godot-variant-type-string  (godot/variant->str variant)
+        :godot-variant-type-object  (mapped-instance "Object" (godot/variant->object variant))
+        :godot-variant-type-vector2 (godot/->Vector2 (godot/variant->vector2 variant))))))

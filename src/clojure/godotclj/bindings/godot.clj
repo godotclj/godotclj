@@ -3,12 +3,14 @@
             [godotclj.defs :as defs]
             ;; TODO clean up NS
             [tech.v3.datatype.struct :as dtype-struct]
+            [tech.v3.datatype.protocols]
             [tech.v3.datatype.ffi :as dtype-ffi]
             [tech.v3.datatype :as dtype]
             [godotclj.proto :as proto]
             [tech.v3.datatype.native-buffer :as native-buffer]
             [tech.v3.datatype.struct :as dtype-struct])
-  (:import [tech.v3.datatype.ffi Pointer]))
+  (:import [tech.v3.datatype.ffi Pointer]
+           [clojure.lang Indexed Seqable]))
 
 (def godot-struct-defs*
   (clang/define-structs defs/godot-structs))
@@ -52,6 +54,7 @@
   [fn-def & body]
   body)
 
+;; preventing "Method too large!"
 (let [[fns-1 fns-2 fns-3] (partition-all 300 fns)]
   (def fns-1 fns-1)
   (def fns-2 fns-2)
@@ -270,6 +273,120 @@
 
     (dtype-ffi/c->string (godot_char_string_get_data_wrapper (dtype-ffi/->pointer char-string)))))
 
+(defn indexed-seq-from
+  [this i]
+  (when (< i (count this))
+    (lazy-seq (cons (nth this i)
+                    (indexed-seq-from this (inc i))))))
+
+(defn pool-string-array-get
+  [coll i]
+  (let [result (new-struct :godot-string)]
+    (godot_pool_string_array_get_wrapper (dtype-ffi/->pointer coll)
+                                         i
+                                         (dtype-ffi/->pointer result))
+    (godot-string->str result)))
+
+(defn pool-string-array-size
+  [coll]
+  (godot_pool_string_array_size_wrapper (dtype-ffi/->pointer coll)))
+
+(deftype IndexedPoolStringArray [coll]
+  Indexed
+  (nth [_ i]
+    (pool-string-array-get coll i))
+
+  (nth [_ i notFound]
+    (if (< i (pool-string-array-size coll))
+      (pool-string-array-get coll i)
+      notFound))
+
+  (count [_]
+    (pool-string-array-size coll))
+
+  Seqable
+  (seq [this]
+    (indexed-seq-from this 0)))
+
+(defn pool-string-array->indexed
+  [coll]
+  (->IndexedPoolStringArray coll))
+
+(defn vector2-x
+  [v]
+  (godot_vector2_get_x_wrapper (dtype-ffi/->pointer v)))
+
+(defn vector2-y
+  [v]
+  (godot_vector2_get_x_wrapper (dtype-ffi/->pointer v)))
+
+(defn vector2-nth
+  ([v i]
+   (vector2-nth v i nil))
+  ([v i not-found]
+   (case i
+     0 (vector2-x v)
+     1 (vector2-y v)
+     not-found)))
+
+(defn vector2->variant
+  [vector2]
+  (let [variant (dtype-struct/new-struct :godot-variant {:container-type :native-heap})]
+    (godot_variant_new_vector2_wrapper (dtype-ffi/->pointer variant)
+                                       (dtype-ffi/->pointer vector2))
+    variant))
+
+(deftype Vector2 [v]
+  tech.v3.datatype.protocols/PToNativeBuffer
+  (convertible-to-native-buffer? [_]
+    (tech.v3.datatype.protocols/convertible-to-native-buffer? v))
+  (->native-buffer [_]
+    (tech.v3.datatype.protocols/->native-buffer v))
+
+  proto/ToVariant
+  (->variant [this]
+    (vector2->variant v))
+
+  Indexed
+  (nth [_ i]
+    (vector2-nth v i))
+
+  (nth [_ i not-found]
+    (vector2-nth v i not-found))
+
+  (count [_]
+    2)
+
+  Seqable
+  (seq [this]
+    (indexed-seq-from this 0)))
+
+(defn rect2->size
+  [rect2]
+  (let [result (new-struct :godot-variant)]
+    (godot_rect2_get_size_wrapper (dtype-ffi/->pointer rect2)
+                                  (dtype-ffi/->pointer result))
+    result))
+
+(deftype IndexedRect2 [rect2]
+  Indexed
+  (nth [_ i]
+    (nth (->Vector2 (rect2->size rect2)) i))
+
+  (nth [_ i notFound]
+    (nth (->Vector2 (rect2->size rect2)) i notFound))
+
+  (count [_]
+    (count (->Vector2 (rect2->size rect2))))
+
+  Seqable
+  (seq [this]
+    (seq (->Vector2 (rect2->size rect2)))))
+
+(defn rect2->indexed
+  [rect2]
+  (->IndexedRect2 rect2))
+
 (defn variant->wrapper
   [v & {:keys [datatype]
         ;; what is with a nil default?
@@ -277,8 +394,8 @@
   (let [[wrapped? f] (case datatype
                        :godot-array             [true godot_variant_as_array_wrapper]
                        :godot-pool-string-array [true godot_variant_as_pool_string_array_wrapper]
-                       :godot-rect-2            [true godot_variant_as_rect2_wrapper]
-                       :godot-vector-2          [true godot_variant_as_vector2_wrapper]
+                       :godot-rect2             [true godot_variant_as_rect2_wrapper]
+                       :godot-vector2           [true godot_variant_as_vector2_wrapper]
                        :godot-bool              [false (comp #(not= % 0) godot_variant_as_bool_wrapper)]
                        :godot-real              [false godot_variant_as_real_wrapper]
                        :int64_t                 [false godot_variant_as_int_wrapper]
@@ -293,8 +410,8 @@
 
 (def variant->array #(variant->wrapper % :datatype :godot-array))
 (def variant->pool-string-array #(variant->wrapper % :datatype :godot-pool-string-array))
-(def variant->rect2 #(variant->wrapper % :datatype :godot-rect-2))
-(def variant->vector2 #(variant->wrapper % :datatype :godot-vector-2))
+(def variant->rect2 #(variant->wrapper % :datatype :godot-rect2))
+(def variant->vector2 #(variant->wrapper % :datatype :godot-vector2))
 (def variant->bool #(variant->wrapper % :datatype :godot-bool))
 (def variant->real #(variant->wrapper % :datatype :godot-real))
 (def variant->int #(variant->wrapper % :datatype :int64_t))
@@ -305,13 +422,7 @@
   (let [result (godot_variant_get_type_wrapper v)]
     (get-in enums [:godot-variant-type result])))
 
-(defrecord Variant [variant variant-type]
-  proto/ToClojure
-  (->clj [this]
-    (case variant-type
-      :godot-variant-type-real   (variant->real variant)
-      :godot-variant-type-int    (variant->int variant)
-      :godot-variant-type-string (variant->str variant))))
+(defrecord Variant [variant variant-type])
 
 (defn new-variant
   ([variant]
@@ -320,17 +431,9 @@
   ([variant variant-type]
    (->Variant variant variant-type)))
 
-(defn pool-string-array-size
-  [coll]
-  (godot_pool_string_array_size_wrapper (dtype-ffi/->pointer coll)))
 
-(defn pool-string-array-get
-  [coll i]
-  (let [result (new-struct :godot-string)]
-    (godot_pool_string_array_get_wrapper (dtype-ffi/->pointer coll)
-                                         i
-                                         (dtype-ffi/->pointer result))
-    (godot-string->str result)))
+
+
 
 (defn object->variant
   [ob]
@@ -423,21 +526,6 @@
                              (dtype-ffi/->pointer result))
     result))
 
-(defn rect2->size
-  [rect2]
-  (let [result (new-struct :godot-variant)]
-    (godot_rect2_get_size_wrapper (dtype-ffi/->pointer rect2)
-                                  (dtype-ffi/->pointer result))
-    result))
-
-(defn vector2-x
-  [v]
-  (godot_vector2_get_x_wrapper (dtype-ffi/->pointer v)))
-
-(defn vector2-y
-  [v]
-  (godot_vector2_get_x_wrapper (dtype-ffi/->pointer v)))
-
 (defn array->seq
   [v]
   (vec
@@ -469,29 +557,47 @@
 
       (dtype-ffi/c->string (godot_char_string_get_data_wrapper (dtype-ffi/->pointer char-string))))))
 
-(defn variants
+(defn indexed-variant-array-get
+  ([ptrs i]
+   (indexed-variant-array-get ptrs i nil))
+  ([ptrs i not-found]
+   (when (< i (count ptrs)))
+   (let [ptr          (Pointer. (nth ptrs i))
+         variant      (dtype-ffi/ptr->struct :godot-variant ptr)]
+     (proto/->clj (new-variant variant (get-variant-type ptr))))))
+
+(deftype IndexedVariantArray [ptrs]
+  Indexed
+  (nth [_ i]
+    (indexed-variant-array-get ptrs i))
+
+  (nth [_ i not-found]
+    (if (< i (count ptrs))
+      (indexed-variant-array-get ptrs i)
+      not-found))
+
+  (count [_]
+    (count ptrs))
+
+  Seqable
+  (seq [this]
+    (indexed-seq-from this 0)))
+
+(defn ->indexed-variant-array
   [n-args p-args]
   (let [buf       (native-buffer/wrap-address p-args (* n-args 8) nil)
         addresses (mapv #(native-buffer/read-long buf (* % 8)) (range n-args))]
-    (mapv #(let [ptr          (Pointer. %)
-                 variant      (dtype-ffi/ptr->struct :godot-variant ptr)]
-             (new-variant variant (get-variant-type ptr)))
-          addresses)))
+    (->IndexedVariantArray addresses)))
 
 (defn new-vector2
   [vs]
-  (let [v (new-struct :godot-vector-2)]
+  (let [v (new-struct :godot-vector2)]
     (godot_vector2_new_wrapper (dtype-ffi/->pointer v)
                                (float (vs 0))
                                (float (vs 1)))
     v))
 
-(defn vector2->variant
-  [vector2]
-  (let [variant (dtype-struct/new-struct :godot-variant {:container-type :native-heap})]
-    (godot_variant_new_vector2_wrapper (dtype-ffi/->pointer variant)
-                                       (dtype-ffi/->pointer vector2))
-    variant))
+
 
 (extend-type java.lang.Double
   proto/ToClojure
@@ -520,7 +626,10 @@
   (->clj
     [i]
     ;; TODO these seem redundant
-    i))
+    i)
+  proto/PVariantToObject
+  (pvariant->object [value]
+    (variant->object (dtype-ffi/ptr->struct :godot-variant (Pointer. value)))))
 
 (extend-type clojure.lang.PersistentVector
   proto/ToVariant
@@ -528,4 +637,48 @@
 
 (extend-type Pointer
   proto/ToVariant
-  (->variant [p] (dtype-ffi/ptr->struct :godot-variant p)))
+  (->variant [p] (dtype-ffi/ptr->struct :godot-variant p))
+  proto/ToPointer
+  (->ptr [p] p))
+
+(extend-type tech.v3.datatype.struct.Struct
+  proto/ToPointer
+  (->ptr [s]
+    (dtype-ffi/->pointer s)))
+
+(defn vector2-rotated
+  [v phi]
+  (let [result (new-struct :godot-vector2)]
+    (godot_vector2_rotated_wrapper (dtype-ffi/->pointer v)
+                                   phi
+                                   (dtype-ffi/->pointer result))
+    result))
+
+(deftype IndexedArray [])
+(deftype Color [])
+(deftype IndexedPoolVector2Array [])
+(deftype NodePath [])
+(deftype PoolByteArray [])
+(deftype AABB [])
+(deftype Transform [])
+(deftype Dictionary [])
+(deftype PoolIntArray [])
+(deftype RID [])
+(deftype PoolColorArray [])
+(deftype PoolRealArray [])
+(deftype Vector3 [])
+(deftype Plane [])
+(deftype Transform2D [])
+(deftype PoolVector3Array [])
+(deftype Basis [])
+
+(defn register-classes
+  [p-handle classes]
+  (doseq [[cls {:keys [base create destroy properties methods signals]}] classes]
+    (register-class p-handle cls base create destroy)
+    (doseq [[property-name {property-type :type :keys [value getter setter]}] properties]
+      (register-property p-handle cls property-name setter getter :type property-type :value value))
+    (doseq [[method-name method-fn] methods]
+      (register-method p-handle cls method-name method-fn))
+    (doseq [signal-name signals]
+      (register-signal p-handle cls signal-name))))

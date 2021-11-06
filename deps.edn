@@ -11,4 +11,7 @@
          meander/epsilon                     {:mvn/version "0.0.650"}
          camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
          com.stuartsierra/dependency         {:mvn/version "1.0.0"}
-         com.cognitect/transit-clj           {:mvn/version "1.0.324"}}}
+         com.cognitect/transit-clj           {:mvn/version "1.0.324"}
+
+         backtick/backtick                   {:mvn/version "0.3.4"}
+         fipp                                {:mvn/version "0.6.24"}}}

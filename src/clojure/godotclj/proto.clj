@@ -14,3 +14,6 @@
 
 (defprotocol ToClojure
   (->clj [_]))
+
+(defprotocol PVariantToObject
+  (pvariant->object [_]))

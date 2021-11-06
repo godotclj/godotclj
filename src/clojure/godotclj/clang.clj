@@ -643,7 +643,7 @@
             (dtype-struct/define-datatype! k (:data-layout v)))
           (into {} cache-json))
       (let [result (for [struct-name @names]
-                     (let [k (keyword (csk/->kebab-case struct-name))]
+                     (let [k (csk/->kebab-case-keyword struct-name :separator \_)]
                        [k (ffi-clang/defstruct-from-layout
                             k
                             (typedef->struct @records-json (layout @records-txt struct-name)))]))]
@@ -666,9 +666,10 @@
             result       (into {}
                                (for [t types]
                                  [(csk/->kebab-case-keyword t)
-                                  (into {} (map vector
-                                                (range)
-                                                (map csk/->kebab-case-keyword (enum-values (:inner (get-def records-json :name t :kind "EnumDecl"))))))]))]
+                                  (into {} (mapv vector
+                                                 (range)
+                                                 (mapv #(csk/->kebab-case-keyword % :separator \_) (enum-values (:inner (get-def records-json :name t :kind "EnumDecl")))
+                                                       )))]))]
         (spit (doto (io/file cache)
                 (io/make-parents))
               (->transit result))
