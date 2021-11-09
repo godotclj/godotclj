@@ -49,6 +49,7 @@
     ("String" "Rect2") (:godot/object m)
     "Vector2"          m
     "PoolStringArray"  m
+    "NodePath"         m
     "Array"            m
     "enum.Error"       m
     (gdscript/->instance ob-type m)))
@@ -72,9 +73,10 @@
                         "float"           (some-> variant godot/variant->real)
                         "int"             (some-> variant godot/variant->int)
                         (case (godot/get-variant-type variant)
-                          :godot-variant-type-int    (some-> variant godot/variant->int)
-                          :godot-variant-type-object (some-> variant godot/variant->object)
-                          :godot-variant-type-nil    nil))]
+                          :godot-variant-type-int       (some-> variant godot/variant->int)
+                          :godot-variant-type-object    (some-> variant godot/variant->object)
+                          :godot-variant-type-node-path (some-> variant godot/variant->node-path)
+                          :godot-variant-type-nil       nil))]
           object
           )
         (catch Exception e
@@ -90,6 +92,8 @@
           ("bool" "int" "float") object
           "Vector2"              (godot/->Vector2 object)
           "PoolStringArray"      (godot/pool-string-array->indexed object)
+          "NodePath"             (godot/->NodePath object)
+          "Array"                (godot/->IndexedArray (godot/array->seq object))
           (when object
             (mapped-instance return_type object wrapper)))))))
 

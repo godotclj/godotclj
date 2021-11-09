@@ -260,6 +260,13 @@
 
     (dtype-ffi/c->string (godot_char_string_get_data_wrapper (dtype-ffi/->pointer char-string)))))
 
+(defn node-path->godot-string
+  [node-path]
+  (let [godot-string   (dtype-struct/new-struct :godot-string {:container-type :native-heap})]
+    (godot_node_path_as_string_wrapper (dtype-ffi/->pointer node-path)
+                                       (dtype-ffi/->pointer godot-string))
+    godot-string))
+
 (defn variant->str
   [string-variant]
   (let [string        (dtype-struct/new-struct :godot-string {:container-type :native-heap})
@@ -399,7 +406,8 @@
                        :godot-bool              [false (comp #(not= % 0) godot_variant_as_bool_wrapper)]
                        :godot-real              [false godot_variant_as_real_wrapper]
                        :int64_t                 [false godot_variant_as_int_wrapper]
-                       :godot-object            [false godot_variant_as_object_wrapper])
+                       :godot-object            [false godot_variant_as_object_wrapper]
+                       :godot-node-path         [true godot_variant_as_node_path_wrapper])
         result       (when wrapped?
                        (dtype-struct/new-struct datatype {:container-type :native-heap}))]
     (let [ret (apply f
@@ -416,6 +424,7 @@
 (def variant->real #(variant->wrapper % :datatype :godot-real))
 (def variant->int #(variant->wrapper % :datatype :int64_t))
 (def variant->object #(variant->wrapper % :datatype :godot-object))
+(def variant->node-path #(variant->wrapper % :datatype :godot-node-path))
 
 (defn get-variant-type
   [v]
@@ -654,10 +663,14 @@
                                    (dtype-ffi/->pointer result))
     result))
 
-(deftype IndexedArray [])
+(deftype IndexedArray [m])
 (deftype Color [])
 (deftype IndexedPoolVector2Array [])
-(deftype NodePath [])
+(deftype NodePath [m]
+  Object
+  (toString [_]
+    (godot-string->str (node-path->godot-string m))))
+
 (deftype PoolByteArray [])
 (deftype AABB [])
 (deftype Transform [])
