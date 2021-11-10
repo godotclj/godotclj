@@ -48,6 +48,7 @@
   (case ob-type
     ("String" "Rect2") (:godot/object m)
     "Vector2"          m
+    "Vector3"          m
     "PoolStringArray"  m
     "NodePath"         m
     "Array"            m
@@ -69,6 +70,7 @@
                         "PoolStringArray" (some-> variant godot/variant->pool-string-array)
                         "Rect2"           (some-> variant godot/variant->rect2 godot/rect2->indexed)
                         "Vector2"         (some-> variant godot/variant->vector2)
+                        "Vector3"         (some-> variant godot/variant->vector3)
                         "bool"            (some-> variant godot/variant->bool)
                         "float"           (some-> variant godot/variant->real)
                         "int"             (some-> variant godot/variant->int)
@@ -91,6 +93,7 @@
         (case return_type
           ("bool" "int" "float") object
           "Vector2"              (godot/->Vector2 object)
+          "Vector3"              (godot/->Vector3 object)
           "PoolStringArray"      (godot/pool-string-array->indexed object)
           "NodePath"             (godot/->NodePath object)
           "Array"                (godot/->IndexedArray (godot/array->seq object))
@@ -132,6 +135,7 @@
     (case (:godot/type this)
       ;; TODO more types?
       "Vector2" (godot/vector2->variant (:godot/object this))
+      "Vector3" (godot/vector3->variant (:godot/object this))
       (godot/object->variant (:godot/object this))))
 
   dtype-ffi/PToPointer
@@ -186,9 +190,18 @@
   (->variant [v]
     (godot/vector2->variant (godot/new-vector2 xs))))
 
+(defrecord Vec3 [xs]
+  proto/ToVariant
+  (->variant [v]
+    (godot/vector3->variant (godot/new-vector3 xs))))
+
 (defn vec2
   [xs]
   (->Vec2 (mapv float xs)))
+
+(defn vec3
+  [xs]
+  (->Vec3 (mapv float xs)))
 
 (defn vec2-xs
   [v]
@@ -229,4 +242,5 @@
         :godot-variant-type-int     (godot/variant->int variant)
         :godot-variant-type-string  (godot/variant->str variant)
         :godot-variant-type-object  (mapped-instance "Object" (godot/variant->object variant))
-        :godot-variant-type-vector2 (godot/->Vector2 (godot/variant->vector2 variant))))))
+        :godot-variant-type-vector2 (godot/->Vector2 (godot/variant->vector2 variant))
+        :godot-variant-type-vector3 (godot/->Vector3 (godot/variant->vector3 variant))))))

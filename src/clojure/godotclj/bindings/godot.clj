@@ -336,11 +336,25 @@
      1 (vector2-y v)
      not-found)))
 
+(defn vector3-nth
+  ([v i]
+   (vector3-nth v i nil))
+  ([v i not-found]
+   (godot_vector3_get_axis_wrapper (dtype-ffi/->pointer v)
+                                   i)))
+
 (defn vector2->variant
   [vector2]
   (let [variant (dtype-struct/new-struct :godot-variant {:container-type :native-heap})]
     (godot_variant_new_vector2_wrapper (dtype-ffi/->pointer variant)
                                        (dtype-ffi/->pointer vector2))
+    variant))
+
+(defn vector3->variant
+  [vector3]
+  (let [variant (dtype-struct/new-struct :godot-variant {:container-type :native-heap})]
+    (godot_variant_new_vector3_wrapper (dtype-ffi/->pointer variant)
+                                       (dtype-ffi/->pointer vector3))
     variant))
 
 (deftype Vector2 [v]
@@ -363,6 +377,31 @@
 
   (count [_]
     2)
+
+  Seqable
+  (seq [this]
+    (indexed-seq-from this 0)))
+
+(deftype Vector3 [v]
+  tech.v3.datatype.protocols/PToNativeBuffer
+  (convertible-to-native-buffer? [_]
+    (tech.v3.datatype.protocols/convertible-to-native-buffer? v))
+  (->native-buffer [_]
+    (tech.v3.datatype.protocols/->native-buffer v))
+
+  proto/ToVariant
+  (->variant [this]
+    (vector3->variant v))
+
+  Indexed
+  (nth [_ i]
+    (vector3-nth v i))
+
+  (nth [_ i not-found]
+    (vector3-nth v i not-found))
+
+  (count [_]
+    3)
 
   Seqable
   (seq [this]
@@ -403,6 +442,7 @@
                        :godot-pool-string-array [true godot_variant_as_pool_string_array_wrapper]
                        :godot-rect2             [true godot_variant_as_rect2_wrapper]
                        :godot-vector2           [true godot_variant_as_vector2_wrapper]
+                       :godot-vector3           [true godot_variant_as_vector3_wrapper]
                        :godot-bool              [false (comp #(not= % 0) godot_variant_as_bool_wrapper)]
                        :godot-real              [false godot_variant_as_real_wrapper]
                        :int64_t                 [false godot_variant_as_int_wrapper]
@@ -420,6 +460,7 @@
 (def variant->pool-string-array #(variant->wrapper % :datatype :godot-pool-string-array))
 (def variant->rect2 #(variant->wrapper % :datatype :godot-rect2))
 (def variant->vector2 #(variant->wrapper % :datatype :godot-vector2))
+(def variant->vector3 #(variant->wrapper % :datatype :godot-vector3))
 (def variant->bool #(variant->wrapper % :datatype :godot-bool))
 (def variant->real #(variant->wrapper % :datatype :godot-real))
 (def variant->int #(variant->wrapper % :datatype :int64_t))
@@ -606,6 +647,15 @@
                                (float (vs 1)))
     v))
 
+(defn new-vector3
+  [vs]
+  (let [v (new-struct :godot-vector3)]
+    (godot_vector3_new_wrapper (dtype-ffi/->pointer v)
+                               (float (vs 0))
+                               (float (vs 1))
+                               (float (vs 2)))
+    v))
+
 
 
 (extend-type java.lang.Double
@@ -679,7 +729,6 @@
 (deftype RID [])
 (deftype PoolColorArray [])
 (deftype PoolRealArray [])
-(deftype Vector3 [])
 (deftype Plane [])
 (deftype Transform2D [])
 (deftype PoolVector3Array [])
