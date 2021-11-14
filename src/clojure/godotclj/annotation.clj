@@ -1,6 +1,5 @@
 (ns godotclj.annotation
-  (:require [godotclj.annotation :as annotation]
-            [fipp.clojure :refer [pprint]]
+  (:require [fipp.clojure :refer [pprint]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]))
 
