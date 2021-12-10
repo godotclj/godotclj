@@ -713,7 +713,12 @@
                                    (dtype-ffi/->pointer result))
     result))
 
-(deftype IndexedArray [m])
+(deftype IndexedArray [m object]
+  dtype-ffi/PToPointer
+  (convertible-to-pointer? [item] true)
+  (->pointer [this]
+    (dtype-ffi/->pointer object)))
+
 (deftype Color [])
 (deftype IndexedPoolVector2Array [])
 (deftype NodePath [m]

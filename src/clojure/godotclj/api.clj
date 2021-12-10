@@ -96,7 +96,7 @@
           "Vector3"              (godot/->Vector3 object)
           "PoolStringArray"      (godot/pool-string-array->indexed object)
           "NodePath"             (godot/->NodePath object)
-          "Array"                (godot/->IndexedArray (godot/array->seq object))
+          "Array"                (godot/->IndexedArray (godot/array->seq object) object)
           (when object
             (mapped-instance return_type object wrapper)))))))
 
