@@ -4,7 +4,8 @@
 #include <cstring>
 #include <stdarg.h>
 #include <iostream>
-#include<pthread.h>
+#include <pthread.h>
+#include <locale>
 
 extern "C" {
   JavaVM *vm;
@@ -38,6 +39,10 @@ extern "C" {
     int result = JNI_CreateJavaVM(&vm, (void**)&env, &vm_args);
     delete options;
     free(classpath);
+
+    // JVM is overriding the locale used by Godot. Resetting this to US English ASCII locale
+    // See https://stdcxx.apache.org/doc/stdlibug/24-3.html
+    std::locale::global(std::locale::classic());
 
     return result;
   }
