@@ -166,7 +166,7 @@ $(BUILD)/libgodotclj_gdnative.so: $(BIN)/libgodotclj.so $(BUILD)/gdnative.o $(BU
 	gcc $(CFLAGS) -Wl,-rpath='$$ORIGIN' -shared -o $@ -I$(BUILD) -I$(GODOT_HEADERS) -Isrc/c --std=c11 -fPIC -rdynamic -L$(BUILD) -lgodotclj $(BUILD)/gdnative.o $(BUILD)/callback.o $(BUILD)/godot_bindings.o -lwrapper -L$(BUILD)
 else
 $(BUILD)/libgodotclj_gdnative.so: $(BUILD)/jvm.o $(BUILD)/gdnative.o $(BUILD)/callback.o $(BUILD)/godot_bindings.o $(BUILD)/libwrapper.so
-	gcc $(CFLAGS) -Wl,-rpath='$$ORIGIN' -shared -o $@ -I$(BUILD) -I$(GODOT_HEADERS) -Isrc/c --std=c11 -fPIC -rdynamic -L$(BUILD) $(BUILD)/gdnative.o $(BUILD)/callback.o $(BUILD)/godot_bindings.o $(BUILD)/jvm.o -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -ljava -ljvm -L $(JAVA_HOME)/lib -L $(JAVA_HOME)/lib/server -L /usr/lib64 -lwrapper -L$(BUILD)
+	gcc $(CFLAGS) -Wl,--no-as-needed -Wl,-rpath='$$ORIGIN' -shared -o $@ -I$(BUILD) -I$(GODOT_HEADERS) -Isrc/c --std=c11 -fPIC -rdynamic -L$(BUILD) $(BUILD)/gdnative.o $(BUILD)/callback.o $(BUILD)/godot_bindings.o $(BUILD)/jvm.o -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -ljava -ljvm -L $(JAVA_HOME)/lib -L $(JAVA_HOME)/lib/server -L /usr/lib64 -lwrapper -L$(BUILD)
 endif
 
 ifeq ($(RUNTIME),graalvm)
