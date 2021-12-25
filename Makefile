@@ -1,22 +1,22 @@
 RUNTIME ?= jvm
 PROJECT_DIR ?= $(PWD)
 GODOT_CLJ_DIR ?= $(CURDIR)
-GODOT_HEADERS ?= $(PROJECT_DIR)/godot-headers
+GODOT_HEADERS ?= $(GODOT_CLJ_DIR)/godot-headers
 BUILD ?= $(PWD)/build
 BIN ?= $(PWD)/bin
 CLASSES ?= $(PWD)/classes
 
 export CLASSES
 
-CLASSPATH ?= $(shell clj -Spath | clj -M -e "(require 'godotclj.paths)")
+CLASSPATH ?= $(shell clojure -Spath | clojure -M -e "(require 'godotclj.paths)")
 
-CLJ=clj -Scp $(CLASSPATH)
+CLJ=clojure -Scp $(CLASSPATH)
 
 ifeq ($(RUNTIME),graalvm)
 JAVA_HOME=$(GRAALVM_HOME)
 CFLAGS=-D RUNTIME_GRAALVM=1
 else
-JAVA_HOME=$(shell clj -M -e "(println (System/getProperty \"java.home\"))")
+JAVA_HOME=$(shell clojure -M -e "(println (System/getProperty \"java.home\"))")
 endif
 
 JAVA_PATH=$(JAVA_HOME)/bin:$(PATH)
@@ -31,7 +31,7 @@ CFLAGS += -ggdb
 
 export CFLAGS
 
-ALL=src/clojure/godotclj/api/gdscript.clj $(BIN)/libgodotclj.so $(BIN)/libgodotclj_gdnative.so $(BIN)/libwrapper.so $(BUILD)/wrapper.txt $(BUILD)/wrapper.json $(BUILD)/callback.txt $(BUILD)/callback.json
+ALL=src/clojure/godotclj/api/gdscript.clj $(BIN)/libgodotclj_gdnative.so $(BIN)/libwrapper.so $(BUILD)/wrapper.txt $(BUILD)/wrapper.json $(BUILD)/callback.txt $(BUILD)/callback.json
 ifeq ($(RUNTIME),jvm)
 ALL += $(CLASSES)/godotclj/loader.class
 endif
