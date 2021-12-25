@@ -24,18 +24,17 @@
         LD_LIBRARY_PATH (System/getenv "LD_LIBRARY_PATH")]
     (natives/extract-native-libraries)
 
-    (process `["godot" ~@args]
-             {:out *out*
-              :err *err*
-              :env (merge (into {} (System/getenv))
-                          {"JAVA_HOME" JAVA_HOME
-                           "CLASSPATH" (class-path)
-                           "LD_LIBRARY_PATH"
-                           (format "%s/lib:%s/lib/server:%s:%s"
-                                   JAVA_HOME
-                                   JAVA_HOME
-                                   (.getAbsolutePath (io/file "natives"))
-                                   (or LD_LIBRARY_PATH "")
-
-                                   )})})
+    (-> (process `["godot" ~@args]
+                 {:err :inherit
+                  :out :inherit
+                  :env (merge (into {} (System/getenv))
+                              {"JAVA_HOME" JAVA_HOME
+                               "CLASSPATH" (class-path)
+                               "LD_LIBRARY_PATH"
+                               (format "%s/lib:%s/lib/server:%s:%s"
+                                       JAVA_HOME
+                                       JAVA_HOME
+                                       (.getAbsolutePath (io/file "natives"))
+                                       (or LD_LIBRARY_PATH ""))})})
+        (check))
     (shutdown-agents)))
