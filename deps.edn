@@ -1,6 +1,10 @@
-{:paths #{"src/clojure" "classes" "resources" "build"}
+{:paths #{"src/clojure" "classes" "resources" "lib"}
  :deps  {org.clojure/clojure                 {:mvn/version "1.10.3"}
          org.clojure/core.async              {:mvn/version "1.3.618"}
+
+         org.scijava/native-lib-loader       {:mvn/version "2.4.0"}
+         ch.qos.logback/logback-classic      {:mvn/version "1.2.3"}
+         babashka/process                    {:mvn/version "0.0.1"}
 
          org.graalvm.sdk/graal-sdk           {:mvn/version "21.2.0"}
          cnuernber/dtype-next                {:mvn/version "8.031"}

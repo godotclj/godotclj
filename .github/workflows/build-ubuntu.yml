@@ -2,6 +2,8 @@ name: build-ubuntu
 
 on:
   push:
+    tags:
+      - '*'
     branches: [ ready ]
   pull_request:
     branches: [ ready ]
@@ -15,20 +17,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
       - name: Prepare java
         uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
           java-version: '11'
-      
+
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@3.5
         with:
           cli: 1.10.3.986
-        
+
       - run: git submodule init
-      
+
       - run: git submodule update
-      
+
       - run: make
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            target/godotclj.jar

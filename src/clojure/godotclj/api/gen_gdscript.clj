@@ -12,6 +12,7 @@
 
 (defonce api-json
   (delay (walk/keywordize-keys (json/read-str (slurp (or (io/resource "api.json")
+                                                         (io/resource "godot-headers/api.json")
                                                          (io/file "godot-headers/api.json")))))))
 
 (defn hyphenate
