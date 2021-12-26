@@ -1,8 +1,8 @@
 (ns godotclj.runner
-  (:require [clojure.string :as str]
+  (:require [babashka.process :refer [process check]]
             [clojure.java.io :as io]
-            [godotclj.natives :as natives]
-            [babashka.process :refer [process check]]))
+            [clojure.string :as str]
+            [godotclj.natives :as natives]))
 
 (defn absolute-class-path
   [cp]

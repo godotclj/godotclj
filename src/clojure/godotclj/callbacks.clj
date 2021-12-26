@@ -1,8 +1,7 @@
 (ns godotclj.callbacks
-  (:require [godotclj.api :as api :refer [mapped-instance]]
-;;            [godotclj.api.basic :as basic]
+  (:require [clojure.core.async :as async]
+            [godotclj.api :as api :refer [mapped-instance]]
             [godotclj.bindings.godot :as godot]
-            [clojure.core.async :as async]
             [godotclj.proto :as proto])
   (:import [clojure.core.async.impl.channels ManyToManyChannel]))
 
@@ -14,8 +13,8 @@
 
 (defn get-root
   []
-  (let [{:keys [get-main-loop]}              (api/mapped-instance "_Engine")
-        {:keys [get-current-scene get-root]} (get-main-loop)]
+  (let [{:keys [get-main-loop]} (api/mapped-instance "_Engine")
+        {:keys [get-root]}      (get-main-loop)]
     (get-root)))
 
 ;; THis is a bad choice
@@ -51,7 +50,7 @@
         state       (-> state
                         (assoc :callback-id callback-id)
                         (assoc-in [:deferred-callbacks callback-id] cb))
-        {:keys [call-deferred] :as main} (get-main)]
+        {:keys [call-deferred]} (get-main)]
 
     (call-deferred "_deferred_callback" callback-id)
 
@@ -74,7 +73,7 @@
     (callback state callback-id)))
 
 (defn signal-callback
-  [p_instance p_method_data p_user_data n-args args]
+  [_ _ _ n-args args]
   (try
     (let [vs          (godot/->indexed-variant-array n-args args)
           instance-id (first vs)
@@ -86,7 +85,7 @@
   nil)
 
 (defn deferred-callback
-  [p_instance p_method_data p_user_data n-args args]
+  [_ _ _ n-args args]
   (try
     (let [vs          (godot/->indexed-variant-array n-args args)
           callback-id (first vs)]
@@ -97,7 +96,7 @@
   nil)
 
 (defn signal->channel
-  [{:keys [connect disconnect get-instance-id] :as ob} signal-name]
+  [{:keys [connect disconnect get-instance-id]} signal-name]
   {:pre [(seq signal-name)]}
   (let [instance-id (proto/->clj (get-instance-id))
         output      (async/chan)

@@ -1,11 +1,10 @@
 (ns godotclj.main-jvm
-  (:require [godotclj.core]
-            [godotclj.defs :as defs]
+  (:require [godotclj.bindings.godot :as godot]
             [godotclj.clang]
-            [tech.v3.datatype.ffi :as dtype-ffi]
-            [godotclj.bindings.godot :as godot]
-            [godotclj.proto :as proto])
-  (:import [tech.v3.datatype.ffi Pointer]))
+            [godotclj.core]
+            [godotclj.defs :as defs]
+            [godotclj.proto :as proto]
+            [tech.v3.datatype.ffi :as dtype-ffi]))
 
 ;; The following is automatically configured by dtype-next,
 ;; based on "java --add-modules=jdk.incubator.foreign"

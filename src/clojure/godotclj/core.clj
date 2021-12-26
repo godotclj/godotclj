@@ -1,9 +1,6 @@
 (ns godotclj.core
-  (:require [clojure.java.io :as io]
-            [clojure.data.json :as json]
-            [clojure.walk :as walk]
-            [clojure.edn :as edn]
-            [godotclj.bindings.godot :as godot]))
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]))
 
 (defonce godotclj
   (let [f (io/resource "godotclj.edn")]

@@ -1,7 +1,7 @@
 (ns godotclj.annotation
-  (:require [fipp.clojure :refer [pprint]]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]))
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [fipp.clojure :refer [pprint]]))
 
 (def types-file nil)
 
@@ -21,7 +21,7 @@
 (defn start-serializer
   [types-file]
   (add-watch types :serialize
-             (fn [k r o n]
+             (fn [_ _ _ n]
                (when types-file
                  (spit types-file (with-out-str (pprint n)))))))
 
@@ -34,5 +34,5 @@
 
 (defmacro deftypes
   [types-file]
-  `(do ~@(for [[form type-name] (load-types (io/resource types-file))]
+  `(do ~@(for [[_ type-name] (load-types (io/resource types-file))]
            `(import ~type-name))))

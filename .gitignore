@@ -9,3 +9,4 @@ uberjar/target
 *.so
 assets
 /.nrepl-port
+.clj-kondo/.cache

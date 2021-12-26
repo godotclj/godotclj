@@ -1,22 +1,10 @@
 (ns godotclj.gen-bindings
-  (:require [tech.v3.datatype.ffi.graalvm :as graalvm]
-            [tech.v3.datatype.ffi.clang :as ffi-clang]
+  (:require [godotclj.clang]
             [godotclj.defs :as defs]
-            [insn.core :as insn]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [camel-snake-kebab.core :as csk]
-            [godotclj.strings :as strings]
-            [godotclj.clang]
             [godotclj.graalvm]
-            [godotclj.insn])
-  (:import [org.graalvm.nativeimage.c.function CFunctionPointer]
-           [org.graalvm.nativeimage.c.function InvokeCFunctionPointer]
-           [org.graalvm.nativeimage IsolateThread]
-           [org.graalvm.word PointerBase]
-           [org.graalvm.nativeimage.c.struct CField]
-           [org.graalvm.nativeimage.c.struct CStruct]
-           [org.graalvm.nativeimage.c CContext]
+            [godotclj.insn]
+            [tech.v3.datatype.ffi.graalvm :as graalvm])
+  (:import [org.graalvm.word PointerBase]
            [org.graalvm.word PointerBase]))
 
 (run! godotclj.insn/write-class (godotclj.graalvm/function-wrapper {:name "godot_class_constructor_wrapper"}))

@@ -1,8 +1,6 @@
 (ns godotclj.graalvm
   (:require [camel-snake-kebab.core :as csk]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [insn.core :as insn]
+            [godotclj.context]
             [godotclj.strings :as strings])
   (:import [org.graalvm.nativeimage.c.function CFunctionPointer]
            [org.graalvm.nativeimage.c.function InvokeCFunctionPointer]
@@ -11,13 +9,12 @@
            [org.graalvm.nativeimage.c.struct CField]
            [org.graalvm.nativeimage.c.struct CStruct]
            [org.graalvm.nativeimage.c CContext]
-           [org.graalvm.nativeimage.c.type VoidPointer]
-           [godotclj context]))
+           [org.graalvm.nativeimage.c.type VoidPointer]))
 
 
 
 (defn function-wrapper-context-name
-  [{function-name :name :as wrapper} & {:keys [suffix] :or {suffix ""}}]
+  [{function-name :name} & {:keys [suffix] :or {suffix ""}}]
   ;; TODO make name greppable
   (symbol (strings/interp "godotclj.context${{function-name}}{{suffix}}"
                           {:function-name (csk/->PascalCase function-name)

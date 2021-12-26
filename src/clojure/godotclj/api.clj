@@ -1,20 +1,14 @@
 (ns godotclj.api
-  (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.walk :as walk]
-            [godotclj.bindings.godot :as godot]
+  (:require [camel-snake-kebab.core :as csk]
             [godotclj.api.gdscript :as gdscript]
+            [godotclj.api.gen-gdscript :as gen-gdscript
+             :refer [ob-def method-name->keyword ob-methods]]
+            [godotclj.bindings.godot :as godot]
             [godotclj.proto :as proto]
             [tech.v3.datatype :as dtype]
             [tech.v3.datatype.ffi :as dtype-ffi]
-            [tech.v3.datatype.native-buffer :as native-buffer]
-            [tech.v3.datatype.struct :as dtype-struct]
-            [camel-snake-kebab.core :as csk]
-
-            [godotclj.api.gen-gdscript :as gen-gdscript :refer [ob-def method-name->keyword ob-methods]])
-  (:import tech.v3.datatype.ffi.Pointer
-           [godotclj.bindings.godot Variant]))
+            [tech.v3.datatype.struct :as dtype-struct])
+  (:import [godotclj.bindings.godot Variant]))
 
 (declare mapped-instance)
 
@@ -26,7 +20,7 @@
       (godot/construct ob-name))))
 
 (defn method-call
-  [method f ob args]
+  [_ f ob args]
   (let [buf     (-> (dtype/make-container :native-heap :int64 (count args))
                     (dtype/as-native-buffer))
         writer  (dtype/as-writer buf)
@@ -56,7 +50,7 @@
     (gdscript/->instance ob-type m)))
 
 (defn ob-method**
-  [ob-type {method-name :name :keys [return_type arguments] :as method}]
+  [ob-type {_ :name :keys [return_type _] :as method}]
   (when-let [f (godot/godot_method_bind_get_method_wrapper
                 (dtype-ffi/string->c ob-type)
                 (dtype-ffi/string->c (:name method)))]
@@ -139,7 +133,7 @@
       (godot/object->variant (:godot/object this))))
 
   dtype-ffi/PToPointer
-  (convertible-to-pointer? [item] true)
+  (convertible-to-pointer? [_] true)
   (->pointer [this]
     (dtype-ffi/->pointer (:godot/object this))))
 
@@ -174,7 +168,7 @@
   ([ob-type ob wrapper]
    {:pre [ob]}
    (let [method-defs (method-defs-memoized ob-type)
-         ob-type     (if-let [get-class-def (:get-class method-defs)]
+         ob-type     (if-let [_ (:get-class method-defs)]
                        (godot/get-class ob)
                        ob-type)
          method-defs (method-defs-memoized ob-type)]
@@ -187,12 +181,12 @@
 
 (defrecord Vec2 [xs]
   proto/ToVariant
-  (->variant [v]
+  (->variant [_]
     (godot/vector2->variant (godot/new-vector2 xs))))
 
 (defrecord Vec3 [xs]
   proto/ToVariant
-  (->variant [v]
+  (->variant [_]
     (godot/vector3->variant (godot/new-vector3 xs))))
 
 (defn vec2

@@ -1,13 +1,13 @@
 (ns godotclj.main-graalvm
-  (:require [godotclj.core]
-            [tech.v3.datatype.ffi.graalvm :as graalvm]
-            [godotclj.bindings.godot :as godot])
+  (:require [godotclj.bindings.godot :as godot]
+            [godotclj.core]
+            [tech.v3.datatype.ffi.graalvm :as graalvm])
   (:gen-class))
 
 (require 'godotclj.graalvm-model)
 
 (defn -main
-  [& args])
+  [& _])
 
 (def main
   (godotclj.core/get-main :graalvm))

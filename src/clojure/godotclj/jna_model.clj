@@ -1,6 +1,5 @@
 (ns godotclj.jna-model
-  (:require [godotclj.proto :as proto])
-  (:import tech.v3.datatype.ffi.Pointer))
+  (:require [godotclj.proto :as proto]))
 
 (require '[tech.v3.datatype.ffi.jna])
 

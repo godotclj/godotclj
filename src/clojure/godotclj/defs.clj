@@ -1,11 +1,5 @@
 (ns godotclj.defs
-  (:require [camel-snake-kebab.core :as csk]
-            [tech.v3.datatype.ffi.clang :as ffi-clang]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [godotclj.clang :as clang]
-            [clojure.walk :as walk]
-            [clojure.data.json :as json]))
+  (:require [godotclj.clang :as clang]))
 
 (defn fn->name
   [fn-name]

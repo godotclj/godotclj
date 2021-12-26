@@ -1,7 +1,7 @@
 (ns godotclj.insn
-  (:require [insn.core :as insn]
-            [clojure.java.io :as io]
-            [clojure.string :as str]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
+            [insn.core :as insn]))
 
 (defn write-class
   [data]

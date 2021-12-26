@@ -1,7 +1,6 @@
 (ns godotclj.context
   (:gen-class
-   :extends godotclj.context$Directives)
-  (:import [org.graalvm.word WordBase]))
+   :extends godotclj.context$Directives))
 
 (defn -getHeaderFiles
   [_]

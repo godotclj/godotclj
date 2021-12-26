@@ -1,7 +1,5 @@
 (ns godotclj.graalvm-model
   (:require [godotclj.proto :as proto]
-            [tech.v3.datatype.native-buffer :as native-buffer]
-            [tech.v3.datatype.struct :as struct]
             [tech.v3.datatype.ffi :as dtype-ffi])
   (:import [org.graalvm.nativeimage CurrentIsolate StackValue]
            [godotclj context$GodotClassConstructorWrapper]
@@ -24,8 +22,8 @@
 
 (extend-type tech.v3.datatype.ffi.Pointer
   proto/ToFunction
-  (->function [ptr ret-type]
-    (fn ^tech.v3.datatype.ffi.Pointer [& args]
+  (->function [ptr _]
+    (fn ^tech.v3.datatype.ffi.Pointer [& _]
       (let [holder              (context$PointerBaseHolder. (StackValue/get context$GodotClassConstructorWrapper))
 
             constructor-wrapper (dtype-ffi/ptr->struct :godot-class-constructor-wrapper (tech.v3.datatype.ffi.Pointer. (.rawValue (.-ptr holder))
