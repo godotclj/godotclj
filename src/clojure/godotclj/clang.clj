@@ -100,18 +100,14 @@
 
 (defn read-records
   [resource-name]
-  (assert (.exists (io/file "gen" resource-name))
-          resource-name)
-  (-> (slurp (io/file "gen" resource-name))
+  (-> (slurp (io/resource resource-name))
       (str/split #"\n")
       (->> (partition-by #(re-find #"^.*Record Layout.*$" %))
            (remove #(re-find #"^.*Record Layout.*$" (first %))))))
 
 (defn read-records-json
   [resource-name]
-  (assert (.exists (io/file "gen" resource-name))
-          resource-name)
-  (walk/keywordize-keys (json/read-str (slurp (io/file "gen" resource-name)))))
+  (walk/keywordize-keys (json/read-str (slurp (io/resource resource-name)))))
 
 (defn names
   [records]
