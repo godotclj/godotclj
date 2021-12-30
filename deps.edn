@@ -20,4 +20,6 @@
          fipp                                {:mvn/version "0.6.24"}
 
          com.tristanstraub/godotclj-tscn     {:git/url "https://github.com/tristanstraub/godotclj-tscn"
-                                              :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}}}
+                                              :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}
+
+         lambdaisland/kaocha                 {:mvn/version "1.60.972"}}}

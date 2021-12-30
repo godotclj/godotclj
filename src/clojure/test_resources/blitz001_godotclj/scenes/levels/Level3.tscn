@@ -1,0 +1,89 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://scenes/Box.tscn" type="PackedScene" id=1]
+[ext_resource path="res://scenes/BaseLevel.tscn" type="PackedScene" id=2]
+
+[node name="Base" instance=ExtResource( 2 )]
+
+[node name="Player" parent="." index="0"]
+position = Vector2( 108.353, 468.691 )
+
+[node name="FinishFlag" parent="." index="1"]
+position = Vector2( 836.588, 98.2738 )
+
+[node name="Environment" type="Node2D" parent="." index="2"]
+
+[node name="Box" parent="Environment" index="0" instance=ExtResource( 1 )]
+position = Vector2( 36.4993, 563.813 )
+
+[node name="Box2" parent="Environment" index="1" instance=ExtResource( 1 )]
+position = Vector2( 110.23, 563.813 )
+
+[node name="Box3" parent="Environment" index="2" instance=ExtResource( 1 )]
+position = Vector2( 182.772, 563.813 )
+
+[node name="Box9" parent="Environment" index="3" instance=ExtResource( 1 )]
+position = Vector2( 315.587, 417.819 )
+
+[node name="Box4" parent="Environment" index="4" instance=ExtResource( 1 )]
+position = Vector2( 241.671, 474.818 )
+
+[node name="Box5" parent="Environment" index="5" instance=ExtResource( 1 )]
+position = Vector2( 480.562, 558.156 )
+
+[node name="Box6" parent="Environment" index="6" instance=ExtResource( 1 )]
+position = Vector2( 554.293, 558.156 )
+
+[node name="Box7" parent="Environment" index="7" instance=ExtResource( 1 )]
+position = Vector2( 626.835, 558.156 )
+
+[node name="Box8" parent="Environment" index="8" instance=ExtResource( 1 )]
+position = Vector2( 700.566, 558.156 )
+
+[node name="Box10" parent="Environment" index="9" instance=ExtResource( 1 )]
+position = Vector2( 382.727, 509.421 )
+
+[node name="Box11" parent="Environment" index="10" instance=ExtResource( 1 )]
+position = Vector2( 483.179, 121.75 )
+
+[node name="Box12" parent="Environment" index="11" instance=ExtResource( 1 )]
+position = Vector2( 71.2617, 330.823 )
+
+[node name="Box13" parent="Environment" index="12" instance=ExtResource( 1 )]
+position = Vector2( 490.936, 37.4148 )
+
+[node name="Box14" parent="Environment" index="13" instance=ExtResource( 1 )]
+position = Vector2( 494.982, 205.485 )
+
+[node name="Box15" parent="Environment" index="14" instance=ExtResource( 1 )]
+position = Vector2( 225.84, 198.369 )
+
+[node name="Box16" parent="Environment" index="15" instance=ExtResource( 1 )]
+position = Vector2( 321.085, 342.563 )
+
+[node name="Box17" parent="Environment" index="16" instance=ExtResource( 1 )]
+position = Vector2( 318.966, 264.163 )
+
+[node name="Box18" parent="Environment" index="17" instance=ExtResource( 1 )]
+position = Vector2( 492.835, 289.361 )
+
+[node name="Box20" parent="Environment" index="18" instance=ExtResource( 1 )]
+position = Vector2( 846.433, 452.14 )
+
+[node name="Box21" parent="Environment" index="19" instance=ExtResource( 1 )]
+position = Vector2( 676.024, 308.145 )
+
+[node name="Box22" parent="Environment" index="20" instance=ExtResource( 1 )]
+position = Vector2( 830.602, 175.69 )
+
+[node name="Box23" parent="Environment" index="21" instance=ExtResource( 1 )]
+position = Vector2( 785.245, 530.988 )
+
+[node name="Box24" parent="Environment" index="22" instance=ExtResource( 1 )]
+position = Vector2( 918.797, 379.797 )
+
+[node name="Box25" parent="Environment" index="23" instance=ExtResource( 1 )]
+position = Vector2( 923.836, 284.043 )
+
+[node name="Box26" parent="Environment" index="24" instance=ExtResource( 1 )]
+position = Vector2( 926.356, 185.77 )
