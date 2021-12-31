@@ -1,0 +1,37 @@
+name: test
+
+on:
+  push:
+    branches: [ ready ]
+  pull_request:
+    branches: [ ready ]
+
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Prepare java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@3.5
+        with:
+          cli: 1.10.3.986
+
+      - run: git submodule init
+
+      - run: git submodule update
+
+      - run: make gen
+
+      - name: Test
+        run: ./scripts/test.sh

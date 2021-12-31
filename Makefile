@@ -53,6 +53,10 @@ all: $(ALL)
 clean:
 	rm -fr $(BIN) $(BUILD) $(GEN) $(CLASSES) $(LIB) target build classes src/c/wrapper.h src/c/wrapper.c .cpcache src/clojure/godotclj/api/gdscript.clj
 
+# Added for automated tests in github actions
+.PHONY: gen
+gen: src/clojure/godotclj/api/gdscript.clj $(LAYOUTS)
+
 $(GEN)/%.txt: src/c/%.c
 	mkdir -p $(shell dirname $@)
 	clang -D RUNTIME_GENERATION=1 $(CFLAGS) -c $< -o $(shell mktemp).o -Xclang -fdump-record-layouts | sed $$'s/\e\\[[0-9;:]*[a-zA-Z]//g' > $@
