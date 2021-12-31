@@ -1,4 +1,4 @@
-(ns test.scene-processing-test
+(ns godotclj.scene-processing-test
   (:require
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is]]
@@ -7,10 +7,10 @@
    [godotclj.util :as util]))
 
 (def dodge-the-creeps-file
-  (io/file "src/clojure/test_resources/dodge_the_creeps"))
+  (io/file (io/resource "dodge-the-creeps")))
 
 (def blitz001-file
-  (io/file "src/clojure/test_resources/blitz001_godotclj"))
+  (io/file (io/resource "blitz001-godotclj")))
 
 (deftest find-scene-files
   (is (= (map #(.getName %)
