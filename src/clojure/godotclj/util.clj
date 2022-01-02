@@ -32,3 +32,8 @@
   [f m]
   (zipmap (keys m)
           (map f (vals m))))
+
+(defmacro with-logged-errors
+  "Evaluate `body` and report all errors that are thrown."
+  [& body]
+  `(try ~@body (catch Exception e# (println e#))))

@@ -75,21 +75,15 @@
 
 (defn signal-callback
   [_ instance-id signal-name]
-  (try
+  (util/with-logged-errors
     (send signal-agent signal-callback* instance-id signal-name)
-    (await signal-agent)
-    (catch Exception e
-      (println e)))
-  nil)
+    (await signal-agent)))
 
 (defn deferred-callback
   [_ callback-id]
-  (try
+  (util/with-logged-errors
     (send signal-agent deferred-callback* callback-id)
-    (await signal-agent)
-    (catch Exception e
-      (println e)))
-  nil)
+    (await signal-agent)))
 
 (defn signal->channel
   [{:keys [connect disconnect get-instance-id]} signal-name]
@@ -109,15 +103,13 @@
   [f]
   (let [output (async/chan)
         cb     (fn [state callback-id]
-                 (try
+                 (util/with-logged-errors
                    (let [result (f)]
                      (if (instance? ManyToManyChannel result)
                        (async/pipe result output)
                        (do (when result
                              (async/put! output result))
-                           (async/close! output))))
-                   (catch Exception e
-                     (println e)))
+                           (async/close! output)))))
                  (unregister-deferred-callback state callback-id))]
 
     (send signal-agent register-deferred-callback cb)
