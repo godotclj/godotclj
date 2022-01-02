@@ -2,7 +2,8 @@
   (:require [clojure.core.async :as async]
             [godotclj.api :as api :refer [mapped-instance]]
             [godotclj.bindings.godot :as godot]
-            [godotclj.proto :as proto])
+            [godotclj.proto :as proto]
+            [godotclj.util :as util])
   (:import [clojure.core.async.impl.channels ManyToManyChannel]))
 
 (defonce signal-agent
@@ -73,24 +74,19 @@
     (callback state callback-id)))
 
 (defn signal-callback
-  [_ _ _ n-args args]
+  [_ instance-id signal-name]
   (try
-    (let [vs          (godot/->indexed-variant-array n-args args)
-          instance-id (first vs)
-          signal-name (second vs)]
-      (send signal-agent signal-callback* instance-id signal-name)
-      (await signal-agent))
+    (send signal-agent signal-callback* instance-id signal-name)
+    (await signal-agent)
     (catch Exception e
       (println e)))
   nil)
 
 (defn deferred-callback
-  [_ _ _ n-args args]
+  [_ callback-id]
   (try
-    (let [vs          (godot/->indexed-variant-array n-args args)
-          callback-id (first vs)]
-      (send signal-agent deferred-callback* callback-id)
-      (await signal-agent))
+    (send signal-agent deferred-callback* callback-id)
+    (await signal-agent)
     (catch Exception e
       (println e)))
   nil)
@@ -134,6 +130,6 @@
 (defn register-callbacks
   [p-handle & classes]
   (doseq [cls classes]
-    (godot/register-method p-handle cls "_signal_callback" #'signal-callback))
-  (doseq [cls classes]
-    (godot/register-method p-handle cls "_deferred_callback" #'deferred-callback)))
+    (let [register (partial godot/register-method p-handle cls)]
+      (register "_signal_callback" (util/simplify-method signal-callback))
+      (register "_deferred_callback" (util/simplify-method deferred-callback)))))
