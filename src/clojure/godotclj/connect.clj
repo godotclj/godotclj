@@ -71,10 +71,10 @@
                       ::f f}]
     (if (signal-registered? registry node signal-name)
       (do
-        (printf "WARNING: Object %s signal %s has been already connected!\n"
+        (printf "WARNING: Object %s signal %s has already been connected!\n"
                 node
                 signal-name)
-        registry) ;; TODO Notify that connection has failed
+        registry)
       (do
         ;; HACK this is used to avoid `api/instanceGC` error
         (util/with-logged-errors
