@@ -59,7 +59,7 @@
               (= (::node %) node))
         registry))
 
-(defn id->signal-entry
+(defn- id->signal-entry
   [id]
   (->> @signal-registry (filter #(= (::id %) id)) first))
 
