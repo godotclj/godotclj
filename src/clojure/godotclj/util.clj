@@ -37,3 +37,7 @@
   "Evaluate `body` and report all errors that are thrown."
   [& body]
   `(try ~@body (catch Exception e# (println e#))))
+
+(defn get-root
+  []
+  (-> "_Engine" api/->object .getMainLoop .getRoot))
