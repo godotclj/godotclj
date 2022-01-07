@@ -16,30 +16,30 @@
   arguments and the `::signal-entry` id. The id is used to find the signal
   entry, grab `:f` and apply signal arguments to it."
   (:require
-   [clojure.spec.alpha :as s]
    [godotclj.api :as api]
    [godotclj.bindings.godot :as godot]
-   [godotclj.util :as util]))
+   [godotclj.util :as util]
+   [malli.core :as m]
+   [malli.error :as m.error]))
 
 (def ^:private signal-handler-method-name "signal_handler")
 
-(s/def ::node #(not (nil? %))) ;; TODO Find a better predicate
-(s/def ::id nat-int?)
-(s/def ::f fn?)
-(s/def ::signal-name (s/and string? seq))
-(s/def ::signal-entry (s/keys :req [::id ::f ::node ::signal-name]))
-(s/def ::signal-registry (s/coll-of ::signal-entry :kind vector?))
+(def ^:private signal-registry-spec
+  [:map-of {:registry {::instance-id :int
+                       ::signal-name :string}}
+   ::instance-id
+   [:map-of ::signal-name fn?]])
 
 (def ^:private signal-registry
-  (agent []
-         :validator #(or (s/valid? ::signal-registry %)
-                         (throw (Exception.
-                                 (s/explain-str ::signal-registry %))))
+  (agent {}
+         :validator #(or (m/validate signal-registry-spec %)
+                         (->> %
+                              (m/explain signal-registry-spec)
+                              m.error/humanize
+                              str
+                              Exception.
+                              throw))
          :error-handler (fn [_ e] (println e))))
-
-(def ^:private generate-signal-id
-  (let [id-counter (atom 0)]
-    (fn [] (swap! id-counter inc))))
 
 ;; HACK That node might disappear
 (defn- get-signal-node
@@ -55,20 +55,11 @@
 (defn- signal-registered?
   "Check `registry` if there is a handler for `signal-name` on `node`."
   [registry node signal-name]
-  (some #(and (= (::signal-name %) signal-name)
-              (= (::node %) node))
-        registry))
-
-(defn- id->signal-entry
-  [id]
-  (->> @signal-registry (filter #(= (::id %) id)) first))
+  (contains? (get registry (.getInstanceId node)) signal-name))
 
 (defn- signal-registry-handler
   [registry node signal-name f]
-  (let [signal-entry {::id (generate-signal-id)
-                      ::node node
-                      ::signal-name signal-name
-                      ::f f}]
+  (let [instance-id (.getInstanceId node)]
     (if (signal-registered? registry node signal-name)
       (do
         (printf "WARNING: Object %s signal %s has already been connected!\n"
@@ -82,16 +73,19 @@
                     signal-name
                     (get-signal-node)
                     signal-handler-method-name
-                    [(::id signal-entry)]))
-        (conj registry signal-entry)))))
+                    [instance-id signal-name]))
+        (assoc-in registry [(.getInstanceId node) signal-name] f)))))
 
 (defn- signal-handler
   [_ & args]
   (let [args (vec args)
-        signal-entry (id->signal-entry (last args)) ;; last item is the ID
+        i (- (count args) 2)
+        [instance-id signal-name] (subvec args i (count args))
         ;; Optional signal arguments (does not include signal name)
-        signal-args (subvec args 0 (dec (count args)))]
-    (apply (::f signal-entry) (::node signal-entry) signal-args)))
+        signal-args (subvec args 0 i)]
+    (apply (get-in @signal-registry [instance-id signal-name])
+           instance-id ;; TODO turn into object
+           signal-args)))
 
 (defn connect
   [node signal-name f]
