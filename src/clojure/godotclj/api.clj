@@ -46,7 +46,7 @@
     "PoolStringArray"  m
     "NodePath"         m
     "Array"            m
-    "enum.Error"       m
+    "enum.Error"       (:godot/object m)
     (gdscript/->instance ob-type m)))
 
 (defn ob-method**
