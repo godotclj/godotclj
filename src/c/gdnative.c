@@ -3,6 +3,7 @@
 #include <gdnative_api_struct.gen.h>
 
 extern const godot_gdnative_core_api_struct *api;
+extern const godot_gdnative_core_1_2_api_struct *api12;
 extern const godot_gdnative_ext_nativescript_api_struct *nativescript_api;
 
 #ifdef RUNTIME_GRAALVM
@@ -22,10 +23,27 @@ void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
       break;
     }
   }
+
+  const godot_gdnative_api_struct* papi = (godot_gdnative_api_struct*)api;
+
+  while(papi->next) {
+    papi = papi->next;
+
+    if (GDNATIVE_CORE == papi->type && papi->version.major == 1 && papi->version.minor == 2) {
+      api12 = (godot_gdnative_core_1_2_api_struct*)papi;
+      break;
+    }
+  }
+
+  if (NULL == api12) {
+    fprintf(stderr, "Could not initialize api12\n");
+    exit(-1);
+  }
 }
 
 void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
   api = NULL;
+  api12 = NULL;
   nativescript_api = NULL;
 }
 

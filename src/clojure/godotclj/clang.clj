@@ -89,7 +89,16 @@
   (->> (get-def* records-json :name "godot_gdnative_core_api_struct")
        :inner
        (filter #(str/includes? (-> % :type :qualType) "(*)"))
-       (mapv :name)))
+       (mapv #(vector (:name %)
+                      {:api {:prefix "api->"}}))))
+
+(defn gdnative-api-methods-1-2
+  [records-json]
+  (->> (get-def* records-json :name "godot_gdnative_core_1_2_api_struct")
+       :inner
+       (filter #(str/includes? (-> % :type :qualType) "(*)"))
+       (mapv #(vector (:name %)
+                      {:api {:prefix "api12->"}}))))
 
 (defn gdnative-nativescript-methods
   [records-json]
@@ -119,11 +128,12 @@
 
 (defn get-fn-parameters
   [fn-def]
-  (m/match fn-def
-    {:inner [(m/or {:as !param}
-                   _)
-             ...]}
-    !param)
+  (when (:inner fn-def)
+    (m/match fn-def
+      {:inner [(m/or {:as !param}
+                     _)
+               ...]}
+      !param))
   )
 
 (defn function-def
@@ -136,12 +146,12 @@
 
 (defn get-parameters
   [pars]
-  {:pre [pars]}
-  (m/match pars
-    [(m/or {:kind "ParmVarDecl" :as !param}
-           _)
-     ...]
-    !param))
+  (when pars
+    (m/match pars
+      [(m/or {:kind "ParmVarDecl" :as !param}
+             _)
+       ...]
+      !param)))
 
 (defn fn-type-def
   [records-json fn-name]
@@ -267,10 +277,11 @@
              return (return-defaults records-json fn-def)}}]
   {:pre [fn-def]}
   (let [{:keys [wrapped?]} return
-        arg-types          (wrap-types records-json arg-types)]
+        arg-types          (wrap-types records-json arg-types)
+        return-arg?        (and wrapped? (not= return-type "void"))]
     (str-interp
-     (if (and wrapped? (not= return-type "void"))
-       "void {{name}}{{suffix}}({{args}}, {{return-type}} {{result}})"
+     (if return-arg?
+       "void {{name}}{{suffix}}({{args}}{{return-type}} {{result}})"
        "{{return-type}} {{name}}{{suffix}}({{args}})")
      {:name        name
       :suffix      suffix
@@ -278,7 +289,10 @@
                      (:arg-type return)
                      return-type)
       :result      (:arg-name return)
-      :args        (str/join ", " (map #(str/join " " %) (map vector arg-types arg-names)))
+      :args        (let [args (str/trim (str/join ", " (map #(str/join " " %) (map vector arg-types arg-names))))]
+                     (if (and (seq args) return-arg?)
+                       (str args ", ")
+                       args))
       :arg-names   (str/join ", " arg-names)})))
 
 (defn emit-wrapper-fn-body
@@ -513,6 +527,7 @@
                     "#include <gdnative_api_struct.gen.h>\n"
                     ""
                     "extern godot_gdnative_core_api_struct* api;"
+                    "extern godot_gdnative_core_1_2_api_struct* api12;"
                     "extern godot_gdnative_ext_nativescript_api_struct* nativescript_api;"
                     ""
                     ~@(let [fns (->> fns
