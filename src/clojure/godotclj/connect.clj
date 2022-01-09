@@ -67,13 +67,11 @@
                 signal-name)
         registry)
       (do
-        ;; HACK this is used to avoid `api/instanceGC` error
-        (util/with-logged-errors
-          (.connect node
-                    signal-name
-                    (get-signal-node)
-                    signal-handler-method-name
-                    [instance-id signal-name]))
+        (.connect node
+                  signal-name
+                  (get-signal-node)
+                  signal-handler-method-name
+                  [instance-id signal-name])
         (assoc-in registry [(.getInstanceId node) signal-name] f)))))
 
 (defn- disconnect-handler
