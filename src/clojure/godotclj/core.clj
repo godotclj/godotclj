@@ -40,3 +40,5 @@
        (apply connect/register-callbacks p-handle (keys classes))))))
 
 (def connect connect/connect)
+
+(def disconnect connect/disconnect)

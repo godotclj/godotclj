@@ -41,3 +41,7 @@
 (defn get-root
   []
   (-> "_Engine" api/->object .getMainLoop .getRoot))
+
+(defn instance-id->instance
+  [instance-id]
+  (api/->object "Object" (godot/godot_instance_from_id_wrapper instance-id)))

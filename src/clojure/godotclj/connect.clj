@@ -54,13 +54,13 @@
 
 (defn- signal-registered?
   "Check `registry` if there is a handler for `signal-name` on `node`."
-  [registry node signal-name]
-  (contains? (get registry (.getInstanceId node)) signal-name))
+  [registry instance-id signal-name]
+  (contains? (get registry instance-id) signal-name))
 
 (defn- signal-registry-handler
   [registry node signal-name f]
   (let [instance-id (.getInstanceId node)]
-    (if (signal-registered? registry node signal-name)
+    (if (signal-registered? registry instance-id signal-name)
       (do
         (printf "WARNING: Object %s signal %s has already been connected!\n"
                 node
@@ -76,6 +76,22 @@
                     [instance-id signal-name]))
         (assoc-in registry [(.getInstanceId node) signal-name] f)))))
 
+(defn- disconnect-handler
+  [registry node signal-name]
+  (let [instance-id (.getInstanceId node)]
+    (if (signal-registered? registry instance-id signal-name)
+      (do
+        (.disconnect node
+                     signal-name
+                     (get-signal-node)
+                     signal-handler-method-name)
+        (dissoc registry instance-id signal-name))
+      (do (printf
+           "WARNING: No function to disconnect on object %s with signal %s!\n"
+           node
+           signal-name)
+          registry))))
+
 (defn- signal-handler
   [_ & args]
   (let [args (vec args)
@@ -84,12 +100,17 @@
         ;; Optional signal arguments (does not include signal name)
         signal-args (subvec args 0 i)]
     (apply (get-in @signal-registry [instance-id signal-name])
-           instance-id ;; TODO turn into object
+           (util/instance-id->instance instance-id)
            signal-args)))
 
 (defn connect
   [node signal-name f]
   (send signal-registry signal-registry-handler node signal-name f)
+  (await signal-registry))
+
+(defn disconnect
+  [node signal-name]
+  (send signal-registry disconnect-handler node signal-name)
   (await signal-registry))
 
 (defn register-callbacks
