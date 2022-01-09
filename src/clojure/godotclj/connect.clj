@@ -62,9 +62,9 @@
   (let [instance-id (.getInstanceId node)]
     (if (signal-registered? registry instance-id signal-name)
       (do
-        (printf "WARNING: Object %s signal %s has already been connected!\n"
-                node
-                signal-name)
+        (util/warn! (format "Object %s signal %s has already been connected!\n"
+                            node
+                            signal-name))
         registry)
       (do
         (.connect node
@@ -84,10 +84,11 @@
                      (get-signal-node)
                      signal-handler-method-name)
         (dissoc registry instance-id signal-name))
-      (do (printf
-           "WARNING: No function to disconnect on object %s with signal %s!\n"
-           node
-           signal-name)
+      (do (util/warn!
+           (format
+            "WARNING: No function to disconnect on object %s with signal %s!\n"
+            node
+            signal-name))
           registry))))
 
 (defn- signal-handler

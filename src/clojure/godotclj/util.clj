@@ -45,3 +45,8 @@
 (defn instance-id->instance
   [instance-id]
   (api/->object "Object" (godot/godot_instance_from_id_wrapper instance-id)))
+
+(defn warn!
+  "Show warning in console."
+  [s]
+  (println (str "godotclj-warning: " s)))
