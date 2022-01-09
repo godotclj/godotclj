@@ -2,7 +2,7 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [godotclj.bindings.godot :as godot]
-            [godotclj.callbacks :as callbacks]
+            [godotclj.connect :as connect]
             [godotclj.scene-processing :as scene-processing]
             [godotclj.util :as util]))
 
@@ -37,4 +37,6 @@
                      (scene-processing/merge-class-map class-override))]
      (fn register-methods [p-handle]
        (godot/register-classes p-handle classes)
-       (apply callbacks/register-callbacks p-handle (keys classes))))))
+       (apply connect/register-callbacks p-handle (keys classes))))))
+
+(def connect connect/connect)
