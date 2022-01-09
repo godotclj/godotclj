@@ -15,9 +15,9 @@
    :functions (delay
                 (let [godot-bindings-json (godotclj.clang/read-records-json "godot_bindings.json")]
                   (concat (->> (godotclj.clang/gdnative-api-methods godot-bindings-json)
-                               (remove #{"godot_get_class_constructor"
-                                         "godot_get_global_constants"})
+                               (remove (comp #{"godot_get_class_constructor"} first))
                                vec)
+                          (godotclj.clang/gdnative-api-methods-1-2 godot-bindings-json)
                           (godotclj.clang/gdnative-nativescript-methods godot-bindings-json)
                           [["godot_get_class_constructor" {:return {:wrapped?   true
                                                                     :wrapper    {:name "godot_class_constructor_wrapper"}
