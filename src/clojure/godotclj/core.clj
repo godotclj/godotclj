@@ -3,6 +3,7 @@
             [clojure.java.io :as io]
             [godotclj.bindings.godot :as godot]
             [godotclj.connect :as connect]
+            [godotclj.hook :as hook]
             [godotclj.scene-processing :as scene-processing]
             [godotclj.util :as util]))
 
@@ -34,6 +35,7 @@
   ([class-override]
    (let [classes (-> project-root
                      (scene-processing/project-file->class-map)
+                     hook/intercept-hook-methods
                      (scene-processing/merge-class-map class-override))]
      (fn register-methods [p-handle]
        (godot/register-classes p-handle classes)
@@ -42,3 +44,7 @@
 (def connect connect/connect)
 
 (def disconnect connect/disconnect)
+
+(def add-hook hook/add-hook)
+
+(def remove-hook hook/remove-hook)
