@@ -1,9 +1,8 @@
 (ns godotclj.hook
   "Provide a way to attach Clojure functions to class virtual methods."
   (:require
-   [godotclj.util :as util]
-   [malli.core :as m]
-   [malli.error :as m.error]))
+   [godotclj.registry-utils :as registry-utils]
+   [godotclj.util :as util]))
 
 (def ^:private hook-registry-spec
   [:map-of {:registry {::instance-id :int
@@ -12,15 +11,7 @@
    [:map-of ::hook-keyword fn?]])
 
 (def ^:private hook-registry
-  (agent {}
-         :validator #(or (m/validate hook-registry-spec %)
-                         (->> %
-                              (m/explain hook-registry-spec)
-                              m.error/humanize
-                              str
-                              Exception.
-                              throw))
-         :error-handler (fn [_ e] (println e))))
+  (registry-utils/make-registry {} hook-registry-spec))
 
 (def ^:private hook-types
   "A map of method names that can be hooked to.

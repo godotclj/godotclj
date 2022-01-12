@@ -18,9 +18,8 @@
   (:require
    [godotclj.api :as api]
    [godotclj.bindings.godot :as godot]
-   [godotclj.util :as util]
-   [malli.core :as m]
-   [malli.error :as m.error]))
+   [godotclj.registry-utils :as registry-utils]
+   [godotclj.util :as util]))
 
 (def ^:private signal-handler-method-name "signal_handler")
 
@@ -31,15 +30,7 @@
    [:map-of ::signal-name fn?]])
 
 (def ^:private signal-registry
-  (agent {}
-         :validator #(or (m/validate signal-registry-spec %)
-                         (->> %
-                              (m/explain signal-registry-spec)
-                              m.error/humanize
-                              str
-                              Exception.
-                              throw))
-         :error-handler (fn [_ e] (println e))))
+  (registry-utils/make-registry {} signal-registry-spec))
 
 ;; HACK That node might disappear
 (defn- get-signal-node
