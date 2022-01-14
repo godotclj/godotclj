@@ -1,5 +1,17 @@
 (ns godotclj.hook
-  "Provide a way to attach Clojure functions to class virtual methods."
+  "Provide a way to attach Clojure functions to class virtual methods.
+
+  Usage:
+  1. Call `intercept-hook-methods` on a classmap and register it
+  2. Use `add-hook` and `remove-hook` to handle-signals.
+
+  Implementation details:
+  Methods are intercepted via `hook-proxy` function that is attached by running
+  `register-callbacks`. `hook-proxy` checks registry and calls the function if
+  it is in the registry. Registry is manipulated via `add-hook` and `remove-hook`
+  functions.
+
+  Currently the implementation is slow and leaks InputEvents."
   (:require
    [godotclj.registry-utils :as registry-utils]
    [godotclj.util :as util]))
@@ -37,7 +49,6 @@
       (util/warn! (format "Object %s hook %s has already been connected!\n"
                           node
                           hook-type))
-
       registry)
     (if (contains? hook-types hook-type)
       (assoc-in registry [(.getInstanceId node) hook-type] f)
@@ -79,7 +90,7 @@
   (await hook-registry))
 
 (defn intercept-hook-methods
-  "Connect to methods listed `hook-types` with hook handlers.
+  "Connect to `hook-types` methods with hook handlers.
 
   Returns a new hash map with `hook-types` methods overriden with wrapped
   `hook-proxy` functions (using `hook-type->proxy-fn`)."
