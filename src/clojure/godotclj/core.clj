@@ -43,12 +43,30 @@
        (apply connect/register-callbacks p-handle (keys classes))
        (apply defer/register-callbacks p-handle (keys classes))))))
 
-(def connect connect/connect)
+(defn connect
+  "Connect `node` signal `signal-name` with function `f`."
+  [node signal-name f]
+  (connect/connect node signal-name f))
 
-(def disconnect connect/disconnect)
+(defn disconnect
+  "Disconnect `node` signal `signal-name`."
+  [node signal-name]
+  (connect/disconnect node signal-name))
 
-(def add-hook hook/add-hook)
+(defn add-hook
+  "Connect to `node`'s `hook-type` with `f`.
 
-(def remove-hook hook/remove-hook)
+  `hook-type` is a keyword that represents a Godot virtual method (e.g.
+  `:ready` or `:physics-process`)."
+  [node hook-type f]
+  (hook/add-hook node hook-type f))
 
-(def defer defer/defer)
+(defn remove-hook
+  "Remove `node`'s hook with type `hook-type`."
+  [node hook-type]
+  (hook/remove-hook node hook-type))
+
+(defn defer
+  "Call `f` when Godot is not busy (same as Godot's `.callDeferred`)."
+  [f]
+  (defer/defer f))
