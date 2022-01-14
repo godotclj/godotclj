@@ -50,3 +50,15 @@
   "Show warning in console."
   [s]
   (println (str "godotclj-warning: " s)))
+
+;; HACK That node might disappear
+(defn get-helper-node
+  "Retrieve a node that is used for internal purposes (e.g. signalling)."
+  []
+  (->> (api/->object "_Engine")
+       .getMainLoop
+       .getRoot
+       .getChildren
+       godot/array->seq
+       first
+       (api/->object "Object")))
