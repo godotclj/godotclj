@@ -1,5 +1,18 @@
 (ns godotclj.defer
-  "Defer calls to godot via Clojure functions."
+  "Defer calls to godot via Clojure functions.
+
+  Usage:
+  1. Call `register-callbacks` on startup
+  2. Use `defer`
+
+  Implementation details:
+  When `register-callbacks` is executed, this namespace can call a godot method.
+  When `defer` is called with function `f`, `f` is registered in
+  `defer-registry`. Immediately afterwards ID of `f` is retrieved and
+  `.callDeferred` is called with method `defer-handler-method-name` which then
+  goes to `defer-proxy`. `defer-proxy` receives the ID and uses it to retrieve
+  the function which is then called. Since the function is no longer needed,
+  it is removed from the registry."
   (:require
    [godotclj.bindings.godot :as godot]
    [godotclj.registry-utils :as registry-utils]
@@ -7,7 +20,6 @@
 
 (def ^:private defer-handler-method-name "defer_handler")
 
-;; we need id to be able to pass data from method
 (def ^:private defer-registry-spec
   [:map {:registry {::fn-id :int ; ID to distinguish a function
                     ::last-id :int ; This is used to determine next id
