@@ -18,7 +18,7 @@
                  fipp                                {:mvn/version "0.6.24"}
 
                  io.github.godotclj/godotclj-natives {:git/url "https://github.com/godotclj/godotclj-natives"
-                                                      :sha     "391171abf6d93c31c504ceec5d742069076cc350"}
+                                                      :sha     "293ffb24321d94630e4ad2ec34948f26a8041cb7"}
 
                  io.github.godotclj/godotclj-tscn    {:git/url "https://github.com/godotclj/godotclj-tscn"
                                                       :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}}
