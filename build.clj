@@ -1,6 +1,6 @@
 (ns build
   (:require [clojure.tools.build.api :as b])
-  (:require [godotclj.api.gen-gdscript :refer [gen-api]]))
+  (:require [godotclj.api.gen-gdnative :refer [gen-api]]))
 
 (defn clean [_]
   (b/delete {:path "target"}))

@@ -1,8 +1,8 @@
 (ns godotclj.api
   (:require [camel-snake-kebab.core :as csk]
-            [godotclj.ffi.gdnative :as gdnative]
-            [godotclj.api.gdscript :as gdscript]
-            [godotclj.api.gen-gdscript :as gen-gdscript
+            [godotclj.ffi.gdnative :as gdnative-ffi]
+            [godotclj.api.gdnative :as gdnative-api]
+            [godotclj.api.gen-gdnative :as gen-gdnative
              :refer [ob-def method-name->keyword ob-methods]]
             [godotclj.bindings.godot :as godot]
             [godotclj.proto :as proto]
@@ -17,7 +17,7 @@
   [ob-name]
   (let [ob-meta (ob-def ob-name)]
     (if (:singleton ob-meta)
-      (gdnative/godot_global_get_singleton_wrapper (dtype-ffi/string->c (:singleton_name ob-meta)))
+      (gdnative-ffi/godot_global_get_singleton_wrapper (dtype-ffi/string->c (:singleton_name ob-meta)))
       (godot/construct ob-name))))
 
 (defn method-call
@@ -30,7 +30,7 @@
     (doseq [[i child] (map vector (range) args)]
       (.writeLong writer i (.address (dtype-ffi/->pointer (proto/->variant child)))))
 
-    (gdnative/godot_method_bind_call_wrapper f
+    (gdnative-ffi/godot_method_bind_call_wrapper f
                                              ob
                                              (dtype-ffi/->pointer buf)
                                              (count args)
@@ -38,7 +38,7 @@
                                              (dtype-ffi/->pointer variant))
     variant))
 
-(defn ->gdscript-instance
+(defn ->gdnative-instance
   [ob-type m]
   (case ob-type
     ("String" "Rect2") (:godot/object m)
@@ -48,11 +48,11 @@
     "NodePath"         m
     "Array"            m
     "enum.Error"       (:godot/object m)
-    (gdscript/->instance ob-type m)))
+    (gdnative-api/->instance ob-type m)))
 
 (defn ob-method**
   [ob-type {_ :name :keys [return_type _] :as method}]
-  (when-let [f (gdnative/godot_method_bind_get_method_wrapper
+  (when-let [f (gdnative-ffi/godot_method_bind_get_method_wrapper
                 (dtype-ffi/string->c ob-type)
                 (dtype-ffi/string->c (:name method)))]
     (fn [ob & args]
@@ -165,7 +165,7 @@
   ([ob-type]
    (mapped-instance ob-type (instance ob-type)))
   ([ob-type ob]
-   (mapped-instance ob-type ob #'->gdscript-instance))
+   (mapped-instance ob-type ob #'->gdnative-instance))
   ([ob-type ob wrapper]
    {:pre [ob]}
    (let [method-defs (method-defs-memoized ob-type)
@@ -215,18 +215,6 @@
    (mapped-instance ob-type ptr)))
 
 (def ->object ->object*)
-#_
-(defmacro ->object
-  ([address-or-ob-type]
-   (if (string? address-or-ob-type)
-     `^{:tag ~(gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript address-or-ob-type)} (->object* ~address-or-ob-type)
-     `(->object* ~address-or-ob-type)))
-  ([ob-type address]
-   `^{:tag ~(gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript ob-type)} (->object* ~ob-type ~address)))
-
-;; (vary-meta `(mapped-instance ~ob-type (proto/->ptr ~address))
-;;               assoc (gen-gdscript/godot-class-symbol gen-gdscript/ns-gdscript ob-type) true)
-
 
 (extend-type Variant
   proto/ToClojure

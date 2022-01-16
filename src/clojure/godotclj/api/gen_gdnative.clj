@@ -1,4 +1,4 @@
-(ns godotclj.api.gen-gdscript
+(ns godotclj.api.gen-gdnative
   (:require [camel-snake-kebab.core :as csk]
             [clojure.java.io :as io]
             [backtick :refer [template]]
@@ -6,9 +6,7 @@
             [clojure.data.json :as json]
             [clojure.string :as str]
             [com.stuartsierra.dependency :as dep]
-            [fipp.clojure :refer [pprint]]
-            ))
-
+            [fipp.clojure :refer [pprint]]))
 
 (defonce api-json
   (delay (walk/keywordize-keys (json/read-str (slurp (io/resource "api.json"))))))
@@ -286,12 +284,12 @@
 
 (defn gen-api
   [dest]
-  (spit (doto (io/file dest (format "src/clojure/godotclj/api/gdscript.clj"))
+  (spit (doto (io/file dest (format "src/clojure/godotclj/api/gdnative.clj"))
           (io/make-parents))
         (binding [*print-length* nil
                   *print-meta*   true]
           (with-out-str
-            (pprint (template (ns ~(symbol "godotclj.api.gdscript")
+            (pprint (template (ns ~(symbol "godotclj.api.gdnative")
                                 (:require [godotclj.proto :as proto]
                                           [godotclj.bindings.godot])
                                 (:import godotclj.bindings.godot.IndexedPoolStringArray

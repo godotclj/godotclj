@@ -8,7 +8,7 @@
    ;; `:linters {:unresolved-symbol {:exclude [meander.epsilon]}}` does not seem
    ;; to work
    "src/clojure/godotclj/clang.clj"
-   "src/clojure/godotclj/api/gen_gdscript.clj"]} ; Problems with `template`
+   "src/clojure/godotclj/api/gen_gdnative.clj"]} ; Problems with `template`
 
  :linters
  {;;; Additional rules
