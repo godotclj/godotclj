@@ -99,7 +99,7 @@
                         (map (fn [j] {:name (str "v" j)})
                              (range 1 (inc i)))))))))
 
-(def ns-gdscript "godotclj.api.gdscript")
+(def ns-gdnative "godotclj.api.gdnative")
 
 (def class-prefix "Godot")
 (def interface-prefix "IGodot")
@@ -129,7 +129,7 @@
   ([api ob-type]
    (let [ob-type (name ob-type)]
      (cond (get api ob-type)
-           (godot-interface-symbol ns-gdscript ob-type)
+           (godot-interface-symbol ns-gdnative ob-type)
 
            (str/starts-with? ob-type "enum")
            'int
@@ -175,7 +175,7 @@
        clojure.lang.ILookup
        (valAt [_ k]
          (get ~m k))
-       ~(godot-interface-symbol ns-gdscript ob-type)
+       ~(godot-interface-symbol ns-gdnative ob-type)
        ~@(reduce concat
            (for [[ob-type methods] (remove-duplicate-methods (order-ob-type-map (ob-methods-grouped ob-type)))
                  :let              [methods (remove (comp #{"to_string"} :name) methods)]]
@@ -216,16 +216,16 @@
 (defn base-interfaces
   [ob-type]
   (let [api (index-by :name @api-json)]
-    (map #(godot-mixin-symbol ns-gdscript %) (base-classes api (get api ob-type)))))
+    (map #(godot-mixin-symbol ns-gdnative %) (base-classes api (get api ob-type)))))
 
 (defn gen-geninterface
   [{ob-type :name methods :methods base-class :base_class :as ob}]
   (let [api        (index-by :name @api-json)
         interfaces (base-classes api ob)]
     (template (gen-interface
-               :name ~(godot-interface-symbol ns-gdscript ob-type)
-               :extends [~(godot-mixin-symbol ns-gdscript ob-type) ~@(when (seq base-class)
-                                                                       [(godot-interface-symbol ns-gdscript base-class)])]))))
+               :name ~(godot-interface-symbol ns-gdnative ob-type)
+               :extends [~(godot-mixin-symbol ns-gdnative ob-type) ~@(when (seq base-class)
+                                                                       [(godot-interface-symbol ns-gdnative base-class)])]))))
 
 (defn api
   []
@@ -235,7 +235,7 @@
       (let [namespace-name (csk/->kebab-case-symbol ob-type :separator \-)
             ns-sym         (csk/->kebab-case-symbol ob-type :separator \-)]
         {:namespace-name namespace-name
-         :require        (template [~(csk/->kebab-case-symbol (str ns-gdscript "." ob-type) :separator \-)
+         :require        (template [~(csk/->kebab-case-symbol (str ns-gdnative "." ob-type) :separator \-)
                                     :as
                                     ~ns-sym])
          :deftype        (gen-deftype ob)
@@ -266,25 +266,25 @@
 
 (defn gen-api-1
   []
-  (doseq [{:keys [namespace-name forms]} (godotclj.api.gen-gdscript/api)]
-    (spit (doto (io/file (format "src/clojure/godotclj/api/gdscript/%s.clj" (csk/->snake_case_string namespace-name :separator \-)))
+  (doseq [{:keys [namespace-name forms]} (api)]
+    (spit (doto (io/file (format "src/clojure/godotclj/api/gdnative/%s.clj" (csk/->snake_case_string namespace-name :separator \-)))
             (io/make-parents))
           (with-out-str
-            (clojure.pprint/pprint (template (ns ~(symbol (str "godotclj.api.gdscript." namespace-name)))))
+            (clojure.pprint/pprint (template (ns ~(symbol (str "godotclj.api.gdnative." namespace-name)))))
             (doseq [form forms]
               (clojure.pprint/pprint (:defn form))))))
-  (spit (doto (io/file (format "src/clojure/godotclj/api/gdscript.clj"))
+  (spit (doto (io/file (format "src/clojure/godotclj/api/gdnative.clj"))
           (io/make-parents))
         (with-out-str
-          (clojure.pprint/pprint (template (ns ~(symbol "godotclj.api.gdscript")
-                                             (:require ~@(map :require (godotclj.api.gen-gdscript/api))))))
-          (doseq [{:keys [namespace-name forms] :as ns} (godotclj.api.gen-gdscript/api)]
+          (clojure.pprint/pprint (template (ns ~(symbol "godotclj.api.gdnative")
+                                             (:require ~@(map :require (godotclj.api.gen-gdnative/api))))))
+          (doseq [{:keys [namespace-name forms] :as ns} (godotclj.api.gen-gdnative/api)]
             (doseq [form forms]
               (clojure.pprint/pprint (:def form)))))))
 
 (defn gen-api
   [dest]
-  (spit (doto (io/file dest (format "src/clojure/godotclj/api/gdnative.clj"))
+  (spit (doto (io/file dest (format "godotclj/api/gdnative.clj"))
           (io/make-parents))
         (binding [*print-length* nil
                   *print-meta*   true]
@@ -313,11 +313,11 @@
                                          godotclj.bindings.godot.Transform2D
                                          godotclj.bindings.godot.PoolVector3Array
                                          godotclj.bindings.godot.Basis))))
-            (doseq [ns (godotclj.api.gen-gdscript/api)]
+            (doseq [ns (api)]
               (pprint (:definterface ns)))
-            (doseq [ns (godotclj.api.gen-gdscript/api)]
+            (doseq [ns (api)]
               (pprint (:gen-interface ns)))
-            (doseq [ns (godotclj.api.gen-gdscript/api)]
+            (doseq [ns (api)]
               (pprint (:deftype ns)))
             (pprint (api-instance))))))
 
