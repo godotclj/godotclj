@@ -20,7 +20,7 @@
                  io.github.godotclj/godotclj-natives {:git/url "https://github.com/godotclj/godotclj-natives"
                                                       :sha     "391171abf6d93c31c504ceec5d742069076cc350"}
 
-                 io.github.com/godotclj-tscn         {:git/url "https://github.com/godotclj/godotclj-tscn"
+                 io.github.godotclj/godotclj-tscn    {:git/url "https://github.com/godotclj/godotclj-tscn"
                                                       :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}}
  :aliases       {:test  {:extra-paths #{"test" "test-resources"}
                          :extra-deps  {lambdaisland/kaocha {:mvn/version "1.60.972"}}}
