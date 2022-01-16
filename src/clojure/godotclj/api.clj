@@ -1,5 +1,6 @@
 (ns godotclj.api
   (:require [camel-snake-kebab.core :as csk]
+            [godotclj.ffi.gdnative :as gdnative]
             [godotclj.api.gdscript :as gdscript]
             [godotclj.api.gen-gdscript :as gen-gdscript
              :refer [ob-def method-name->keyword ob-methods]]
@@ -16,7 +17,7 @@
   [ob-name]
   (let [ob-meta (ob-def ob-name)]
     (if (:singleton ob-meta)
-      (godot/godot_global_get_singleton_wrapper (dtype-ffi/string->c (:singleton_name ob-meta)))
+      (gdnative/godot_global_get_singleton_wrapper (dtype-ffi/string->c (:singleton_name ob-meta)))
       (godot/construct ob-name))))
 
 (defn method-call
@@ -27,14 +28,14 @@
         variant (dtype-struct/new-struct :godot-variant {:container-type :native-heap})]
 
     (doseq [[i child] (map vector (range) args)]
-      (.writeLong writer i (proto/->address (dtype-ffi/->pointer (proto/->variant child)))))
+      (.writeLong writer i (.address (dtype-ffi/->pointer (proto/->variant child)))))
 
-    (godot/godot_method_bind_call_wrapper f
-                                          (proto/->ptr ob)
-                                          (dtype-ffi/->pointer buf)
-                                          (count args)
-                                          nil
-                                          (dtype-ffi/->pointer variant))
+    (gdnative/godot_method_bind_call_wrapper f
+                                             ob
+                                             (dtype-ffi/->pointer buf)
+                                             (count args)
+                                             nil
+                                             (dtype-ffi/->pointer variant))
     variant))
 
 (defn ->gdscript-instance
@@ -51,7 +52,7 @@
 
 (defn ob-method**
   [ob-type {_ :name :keys [return_type _] :as method}]
-  (when-let [f (godot/godot_method_bind_get_method_wrapper
+  (when-let [f (gdnative/godot_method_bind_get_method_wrapper
                 (dtype-ffi/string->c ob-type)
                 (dtype-ffi/string->c (:name method)))]
     (fn [ob & args]
@@ -206,12 +207,12 @@
   (instance? Vec2 v))
 
 (defn ->object*
-  ([address-or-ob-type]
-   (if (string? address-or-ob-type)
-     (mapped-instance address-or-ob-type)
-     (mapped-instance "Object" (proto/->ptr address-or-ob-type))))
-  ([ob-type address]
-   (mapped-instance ob-type (proto/->ptr address))))
+  ([ptr-or-ob-type]
+   (if (string? ptr-or-ob-type)
+     (mapped-instance ptr-or-ob-type)
+     (mapped-instance "Object" ptr-or-ob-type)))
+  ([ob-type ptr]
+   (mapped-instance ob-type ptr)))
 
 (def ->object ->object*)
 #_

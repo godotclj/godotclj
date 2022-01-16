@@ -3,9 +3,6 @@
 (defprotocol ToFunction
   (->function [_ ret-type]))
 
-(defprotocol ToPointer
-  (->ptr [_]))
-
 (defprotocol ToAddress
   (->address [_]))
 

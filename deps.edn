@@ -1,27 +1,33 @@
-{:paths   #{"src/clojure" "classes" "resources" "lib" "gen"}
- :deps    {org.clojure/clojure                 {:mvn/version "1.10.3"}
-           org.clojure/core.async              {:mvn/version "1.3.618"}
+{:paths         #{"src/clojure" "resources" "target/classes"}
+ :deps/prep-lib {:alias  :build
+                 :fn     prep
+                 :ensure "target/classes"}
+ :deps          {org.clojure/clojure                 {:mvn/version "1.10.3"}
+                 org.clojure/core.async              {:mvn/version "1.3.618"}
 
-           org.scijava/native-lib-loader       {:mvn/version "2.4.0"}
-           babashka/process                    {:mvn/version "0.0.1"}
+                 org.graalvm.sdk/graal-sdk           {:mvn/version "21.2.0"}
+                 cnuernber/dtype-next                {:mvn/version "8.031"}
 
-           org.graalvm.sdk/graal-sdk           {:mvn/version "21.2.0"}
-           cnuernber/dtype-next                {:mvn/version "8.031"}
-           techascent/tech.jna                 {:mvn/version "4.05"}
-           net.java.dev.jna/jna                {:mvn/version "5.9.0"}
+                 org.clojure/data.json               {:mvn/version "2.4.0"}
+                 meander/epsilon                     {:mvn/version "0.0.650"}
+                 camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
+                 com.stuartsierra/dependency         {:mvn/version "1.0.0"}
+                 com.cognitect/transit-clj           {:mvn/version "1.0.324"}
 
-           org.clojure/data.json               {:mvn/version "2.4.0"}
-           meander/epsilon                     {:mvn/version "0.0.650"}
-           camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
-           com.stuartsierra/dependency         {:mvn/version "1.0.0"}
-           com.cognitect/transit-clj           {:mvn/version "1.0.324"}
+                 backtick/backtick                   {:mvn/version "0.3.4"}
+                 fipp                                {:mvn/version "0.6.24"}
 
-           backtick/backtick                   {:mvn/version "0.3.4"}
-           fipp                                {:mvn/version "0.6.24"}
+                 io.github.godotclj/godotclj-natives {:local/root "../godotclj-natives"}
 
-           com.tristanstraub/godotclj-tscn     {:git/url "https://github.com/tristanstraub/godotclj-tscn"
-                                                :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}
-
-           ch.qos.logback/logback-classic {:mvn/version "1.2.3"}}
- :aliases {:test {:extra-paths #{"test" "test-resources"}
-                  :extra-deps  {lambdaisland/kaocha {:mvn/version "1.60.972"}}}}}
+                 io.github.com/godotclj-tscn         {:git/url "https://github.com/godotclj/godotclj-tscn"
+                                                      :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}}
+ :aliases       {:test  {:extra-paths #{"test" "test-resources"}
+                         :extra-deps  {lambdaisland/kaocha {:mvn/version "1.60.972"}}}
+                 :build {:deps  {io.github.clojure/tools.build       {:git/tag "v0.7.4" :git/sha "ac442da"}
+                                 camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
+                                 backtick/backtick                   {:mvn/version "0.3.4"}
+                                 com.stuartsierra/dependency         {:mvn/version "1.0.0"}
+                                 fipp                                {:mvn/version "0.6.24"}
+                                 io.github.godotclj/godotclj-natives {:local/root "../godotclj-natives"}}
+                         :paths #{"src/clojure"}
+                         :ns-default  build}}}

@@ -11,9 +11,7 @@
 
 
 (defonce api-json
-  (delay (walk/keywordize-keys (json/read-str (slurp (or (io/resource "api.json")
-                                                         (io/resource "godot-headers/api.json")
-                                                         (io/file "godot-headers/api.json")))))))
+  (delay (walk/keywordize-keys (json/read-str (slurp (io/resource "api.json"))))))
 
 (defn hyphenate
   [s]
@@ -287,8 +285,8 @@
               (clojure.pprint/pprint (:def form)))))))
 
 (defn gen-api
-  []
-  (spit (doto (io/file (format "src/clojure/godotclj/api/gdscript.clj"))
+  [dest]
+  (spit (doto (io/file dest (format "src/clojure/godotclj/api/gdscript.clj"))
           (io/make-parents))
         (binding [*print-length* nil
                   *print-meta*   true]

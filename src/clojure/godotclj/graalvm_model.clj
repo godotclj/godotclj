@@ -7,18 +7,10 @@
 
 (require '[tech.v3.datatype.ffi.graalvm-runtime])
 
-(extend-type Long
-  proto/ToPointer
-  (->ptr [value]
-    (tech.v3.datatype.ffi.Pointer. value)))
-
 (extend-type tech.v3.datatype.ffi.Pointer
   proto/ToAddress
   (->address [ptr]
-    (.address ptr))
-  proto/ToPointer
-  (->ptr [value]
-    value))
+    (.address ptr)))
 
 (extend-type tech.v3.datatype.ffi.Pointer
   proto/ToFunction
