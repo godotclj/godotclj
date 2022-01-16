@@ -17,7 +17,8 @@
                  backtick/backtick                   {:mvn/version "0.3.4"}
                  fipp                                {:mvn/version "0.6.24"}
 
-                 io.github.godotclj/godotclj-natives {:local/root "../godotclj-natives"}
+                 io.github.godotclj/godotclj-natives {:git/url "https://github.com/godotclj/godotclj-natives"
+                                                      :sha     "391171abf6d93c31c504ceec5d742069076cc350"}
 
                  io.github.com/godotclj-tscn         {:git/url "https://github.com/godotclj/godotclj-tscn"
                                                       :sha     "8e075bf13caf6983973d2fc378937efdafdccf46"}}
@@ -28,6 +29,7 @@
                                  backtick/backtick                   {:mvn/version "0.3.4"}
                                  com.stuartsierra/dependency         {:mvn/version "1.0.0"}
                                  fipp                                {:mvn/version "0.6.24"}
-                                 io.github.godotclj/godotclj-natives {:local/root "../godotclj-natives"}}
+                                 io.github.godotclj/godotclj-natives {:git/url "https://github.com/godotclj/godotclj-natives"
+                                                                      :sha     "391171abf6d93c31c504ceec5d742069076cc350"}}
                          :paths #{"src/clojure"}
                          :ns-default  build}}}
