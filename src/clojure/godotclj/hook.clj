@@ -57,7 +57,7 @@
 
 (defn- remove-hook-registry-handler
   [registry node hook-type]
-  (if (hook-registered? registry hook-type (.getInstanceId node))
+  (if (hook-registered? registry (.getInstanceId node) hook-type)
     (dissoc registry (.getInstanceId node) hook-type)
     (do (util/warn!
          (format "Object %s hook %s is already removed!\n"
