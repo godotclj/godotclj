@@ -49,9 +49,9 @@ LAYOUTS=$(GEN)/wrapper.txt $(GEN)/wrapper.json $(GEN)/callback.txt $(GEN)/callba
 
 all: $(ALL)
 
-.PHONY: clean
-clean:
-	rm -fr $(BIN) $(BUILD) $(GEN) $(CLASSES) $(LIB) target build classes src/c/wrapper.h src/c/wrapper.c .cpcache src/clojure/godotclj/api/gdscript.clj
+# .PHONY: clean
+# clean:
+# 	rm -fr $(BIN) $(BUILD) $(GEN) $(CLASSES) $(LIB) target build classes src/c/wrapper.h src/c/wrapper.c .cpcache src/clojure/godotclj/api/gdscript.clj
 
 # Added for automated tests in github actions
 .PHONY: gen
