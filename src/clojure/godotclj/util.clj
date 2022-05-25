@@ -32,3 +32,33 @@
   [f m]
   (zipmap (keys m)
           (map f (vals m))))
+
+(defmacro with-logged-errors
+  "Evaluate `body` and report all errors that are thrown."
+  [& body]
+  `(try ~@body (catch Exception e# (println e#))))
+
+(defn get-root
+  []
+  (-> "_Engine" api/->object .getMainLoop .getRoot))
+
+(defn instance-id->instance
+  [instance-id]
+  (api/->object "Object" (godot/godot_instance_from_id_wrapper instance-id)))
+
+(defn warn!
+  "Show warning in console."
+  [s]
+  (println (str "godotclj-warning: " s)))
+
+;; HACK That node might disappear
+(defn get-helper-node
+  "Retrieve a node that is used for internal purposes (e.g. signalling)."
+  []
+  (->> (api/->object "_Engine")
+       .getMainLoop
+       .getRoot
+       .getChildren
+       godot/array->seq
+       first
+       (api/->object "Object")))
